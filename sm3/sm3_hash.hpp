@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-2.0-only
 
 // SM3 (GB/T 32905-2016), 256-bit digest, plus HMAC-SM3 built on top of it.
 // Dependency-free, like the BLAKE3 core next door.

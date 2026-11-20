@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-2.0-only
 
 // tsubaki dynamic provider: HMAC-SM3 (keyed, 256-bit digest). Any non-empty key
 // is accepted; HMAC hashes an over-long key instead of rejecting it.
