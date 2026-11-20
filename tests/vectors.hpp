@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // Expected digests for the vector check. Each row hashes `input_len` bytes of
 // the pattern `byte i = i % 251`, the same input the BLAKE3 vectors use. The

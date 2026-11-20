@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // BLAKE3 (hash mode, 32-byte digest), written to be dependency-free so the
 // provider can be dropped into any tsubaki install.

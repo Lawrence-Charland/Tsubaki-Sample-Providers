@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // tsubaki dynamic provider: SHA3-224 (FIPS 202), 28-byte digest. The rate is
 // 1152 bits, so 144 bytes are absorbed per permutation.

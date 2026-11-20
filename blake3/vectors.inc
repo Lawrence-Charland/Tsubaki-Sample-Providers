@@ -1,3 +1,4 @@
+// Helped by DeepSeek
 // Generated from the official BLAKE3 test_vectors.json (hash mode).
 // {input byte length, expected first 32 bytes as lowercase hex}
 static const test_vector vectors[] = {

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // Plumbing shared by every provider in this project: the file loop, the hex
 // encoding, and the error mapping. The hash cores stay in their own headers.

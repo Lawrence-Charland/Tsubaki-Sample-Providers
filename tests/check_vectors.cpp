@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // Vector check for every hash core in this project. Each table row is hashed
 // twice: in a single update() call and in uneven pieces, so the buffering at

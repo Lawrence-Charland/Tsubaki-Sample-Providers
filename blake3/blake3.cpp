@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // tsubaki dynamic provider: BLAKE3 (unkeyed, 32-byte digest).
 

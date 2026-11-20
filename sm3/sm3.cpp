@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // tsubaki dynamic provider: SM3 (GB/T 32905-2016, unkeyed, 256-bit digest).
 

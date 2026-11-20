@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
 
 // tsubaki dynamic provider: SHA-512/256 (FIPS 180-4), 32-byte digest.
 
