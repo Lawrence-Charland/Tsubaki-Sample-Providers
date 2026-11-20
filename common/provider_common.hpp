@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: MIT
 
 // Plumbing shared by every provider in this project: the file loop, the hex
 // encoding, and the error mapping. The hash cores stay in their own headers.

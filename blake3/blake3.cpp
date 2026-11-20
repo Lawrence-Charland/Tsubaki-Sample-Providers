@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: MIT
 
 // tsubaki dynamic provider: BLAKE3 (unkeyed, 32-byte digest).
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: MIT
 
 // Keccak-f[1600] and the SHA-3 sponge, parameterised by rate and digest size so
 // SHA3-224 and SHA3-384 share one core.

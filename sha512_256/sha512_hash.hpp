@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: MIT
 
 // tsubaki dynamic provider: SHA-512/256 (FIPS 180-4), 32-byte digest.
 

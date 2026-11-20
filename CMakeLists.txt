@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.16)
 project(tsubaki-providers LANGUAGES CXX)
