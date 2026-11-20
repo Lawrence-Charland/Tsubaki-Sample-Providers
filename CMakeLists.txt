@@ -7,16 +7,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# The contract header is part of the tsubaki source tree; point this at the
-# include/ directory that holds dynamic_provider_header.hpp. Nothing else here
-# depends on where tsubaki lives.
-set(TSUBAKI_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
+# The contract header ships here as a copy of tsubaki's. Point
+# -DTSUBAKI_INCLUDE_DIR=<tsubaki>/include to build the same sources against
+# that tree instead of this copy.
+set(TSUBAKI_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include"
     CACHE PATH "Directory holding dynamic_provider_header.hpp")
 if(NOT EXISTS "${TSUBAKI_INCLUDE_DIR}/dynamic_provider_header.hpp")
     message(FATAL_ERROR
         "dynamic_provider_header.hpp was not found in ${TSUBAKI_INCLUDE_DIR}. "
-        "Set -DTSUBAKI_INCLUDE_DIR=<tsubaki>/include to the tree these modules "
-        "are built against.")
+        "Set -DTSUBAKI_INCLUDE_DIR to a directory that holds it.")
 endif()
 
 # Every module lands directly in the build directory, so a single
