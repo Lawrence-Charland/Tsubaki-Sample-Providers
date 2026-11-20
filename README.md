@@ -21,12 +21,12 @@ libstdc++ 外没有依赖，一个目录就能放下全套。
 ## Build / 构建
 
 ```sh
-cmake -S . -B build
-cmake --build build -j
+cmake --preset linux-gcc-release
+cmake --build --preset linux-gcc-release
 ctest --test-dir build --output-on-failure
 ```
 
-The modules land in `build/`, next to a `check_vectors` binary that hashes the
+The modules land in `build/linux-gcc-release`, next to a `check_vectors` binary that hashes the
 test vectors twice: in one pass and in uneven pieces.
 
 模块直接产出到 `build/`，同目录的 `check_vectors` 会把每组测试向量按整块和碎块各
