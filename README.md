@@ -20,26 +20,34 @@ libstdc++ 外没有依赖，一个目录就能放下全套。
 
 ## Build / 构建
 
+Needs CMake 3.28 or newer with Ninja, and a C++23 compiler.
+
+需要 CMake 3.28 或更新的版本（带 Ninja），以及支持 C++23 的编译器。
+
 ```sh
 cmake --preset linux-gcc-release
 cmake --build --preset linux-gcc-release
-ctest --test-dir build --output-on-failure
+ctest --test-dir build/linux-gcc-release --output-on-failure
 ```
 
-The modules land in `build/linux-gcc-release`, next to a `check_vectors` binary that hashes the
-test vectors twice: in one pass and in uneven pieces.
+The modules land in `build/linux-gcc-release`, next to a `check_vectors` binary
+that hashes the test vectors twice: in one pass and in uneven pieces.
 
-模块直接产出到 `build/`，同目录的 `check_vectors` 会把每组测试向量按整块和碎块各
-算一遍。
+模块直接产出到 `build/linux-gcc-release`，同目录的 `check_vectors` 会把每组测试向量
+按整块和碎块各算一遍。
 
 ## Use / 使用
 
 ```sh
-export TSUBAKI_DYNAMIC_PROVIDER_PATHS=$PWD/build
+export TSUBAKI_DYNAMIC_PROVIDER_PATHS=$PWD/build/linux-gcc-release
 tsubaki --algorithm                       # lists the six modules
-tsubaki sum sm3 .                         # built-in names still win
+tsubaki sum sm3 .                         # provider name, not a built-in
 tsubaki sum hmac_sm3 . -k secret          # keyed provider
 ```
+
+A built-in name always wins, so a provider cannot shadow one.
+
+内建算法名优先，provider 覆盖不了它们。
 
 Every module is compiled against
 [`include/dynamic_provider_header.hpp`](./include/dynamic_provider_header.hpp),
