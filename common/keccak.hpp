@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Helped by DeepSeek
 
-// Keccak-f[1600] and the SHA-3 sponge, parameterised by rate and digest size so
-// SHA3-224 and SHA3-384 share one core.
+// Keccak-f[1600] and the sponge, parameterised by rate, digest size and domain
+// byte, so every member of the family shares one core.
 
 #ifndef TSUBAKI_KECCAK_HPP
 #define TSUBAKI_KECCAK_HPP
@@ -61,8 +61,11 @@ inline void f1600(std::uint64_t a[25]) noexcept
     }
 }
 
-// rate is the sponge capacity in bytes (144 for SHA3-224, 104 for SHA3-384).
-template <std::size_t rate, std::size_t out_len> class sponge
+// rate is the sponge rate in bytes (144 for SHA3-224, 104 for SHA3-384, 136
+// for Keccak-256). domain is the byte that integrates the first padding bit:
+// 0x06 for SHA-3, 0x01 for plain Keccak, 0x1F for SHAKE and TurboSHAKE.
+template <std::size_t rate, std::size_t out_len, std::uint8_t domain = 0x06>
+class sponge
 {
     static_assert(rate % 8 == 0 && rate < 200, "rate is a whole number of lanes");
     static_assert(out_len <= rate, "one squeeze pass is enough");
@@ -119,8 +122,8 @@ template <std::size_t rate, std::size_t out_len> class sponge
     std::array<std::uint8_t, out_len> finalize() const noexcept
     {
         sponge copy = *this;
-        // SHA-3 domain separation: 0b01 pads the message, 0x80 sets the last bit.
-        copy.buf_[copy.buf_len_] = 0x06;
+        // The domain byte carries the first padding bit, 0x80 sets the last.
+        copy.buf_[copy.buf_len_] = domain;
         for (std::size_t i = copy.buf_len_ + 1; i < rate; ++i)
             copy.buf_[i] = 0;
         copy.buf_[rate - 1] ^= 0x80;

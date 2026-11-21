@@ -22,7 +22,12 @@ inline constexpr std::uint64_t iv_sha512[8] = {
     0xa54ff53a5f1d36f1ull, 0x510e527fade682d1ull, 0x9b05688c2b3e6c1full,
     0x1f83d9abfb41bd6bull, 0x5be0cd19137e2179ull};
 
-// SHA-512/256 differs from SHA-512 only in its IV and its truncated output.
+// SHA-512/t differs from SHA-512 only in its IV and its truncated output.
+inline constexpr std::uint64_t iv_sha512_224[8] = {
+    0x8c3d37c819544da2ull, 0x73e1996689dcd4d6ull, 0x1dfab7ae32ff9c82ull,
+    0x679dd514582f9fcfull, 0x0f6d2b697bd44da8ull, 0x77e36f7304c48942ull,
+    0x3f9d85a86a1d36c8ull, 0x1112e6ad91d692a1ull};
+
 inline constexpr std::uint64_t iv_sha512_256[8] = {
     0x22312194fc2bf72cull, 0x9f555fa3c84c64c2ull, 0x2393b86b6f53b151ull,
     0x963877195940eabdull, 0x96283ee2a88effe3ull, 0xbe5e1e2553863992ull,
@@ -207,6 +212,31 @@ class hasher
     }
 };
 } // namespace sha512
+
+namespace sha512_224
+{
+inline constexpr std::size_t digest_len = 28;
+using digest_t = std::array<std::uint8_t, digest_len>;
+
+class hasher
+{
+  private:
+    sha512::hasher core_;
+
+  public:
+    hasher() noexcept : core_(sha512::iv_sha512_224) {}
+
+    void update(const std::uint8_t *input, std::size_t input_len) noexcept
+    {
+        core_.update(input, input_len);
+    }
+
+    digest_t finalize() const noexcept
+    {
+        return core_.finish<digest_len>();
+    }
+};
+} // namespace sha512_224
 
 namespace sha512_256
 {

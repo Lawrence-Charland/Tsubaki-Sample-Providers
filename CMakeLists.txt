@@ -40,9 +40,13 @@ function(tsubaki_provider name)
 endfunction()
 
 tsubaki_provider(blake3      blake3/blake3.cpp)
+tsubaki_provider(keccak256   keccak256/keccak256.cpp)
 tsubaki_provider(sm3         sm3/sm3.cpp)
 tsubaki_provider(hmac_sm3    sm3/hmac_sm3.cpp)
+tsubaki_provider(sha512_224  sha512_224/sha512_224.cpp)
 tsubaki_provider(sha512_256  sha512_256/sha512_256.cpp)
+tsubaki_provider(hmac_sha512_224 hmac_sha512_224/hmac_sha512_224.cpp)
+tsubaki_provider(hmac_sha512_256 hmac_sha512_256/hmac_sha512_256.cpp)
 tsubaki_provider(sha3_224    sha3/sha3_224.cpp)
 tsubaki_provider(sha3_384    sha3/sha3_384.cpp)
 
@@ -51,8 +55,7 @@ enable_testing()
 add_executable(check_vectors tests/check_vectors.cpp)
 target_include_directories(check_vectors PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/blake3"
-    "${CMAKE_CURRENT_SOURCE_DIR}/sha3"
-    "${CMAKE_CURRENT_SOURCE_DIR}/sha512_256"
+    "${CMAKE_CURRENT_SOURCE_DIR}/common"
     "${CMAKE_CURRENT_SOURCE_DIR}/sm3")
 target_compile_options(check_vectors PRIVATE -Wall -Wextra)
 add_test(NAME provider_vectors COMMAND check_vectors)

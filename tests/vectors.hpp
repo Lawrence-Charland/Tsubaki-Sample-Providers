@@ -3,7 +3,7 @@
 
 // Expected digests for the vector check. Each row hashes `input_len` bytes of
 // the pattern `byte i = i % 251`, the same input the BLAKE3 vectors use. The
-// values come from Python's hashlib/hmac; the published known-answer tests for
+// values come from Python's hashlib/hmac and OpenSSL; the published known-answer
 // "abc" live in check_vectors.cpp.
 
 #ifndef TSUBAKI_PROVIDER_VECTORS_HPP
@@ -17,8 +17,8 @@ struct test_vector
     const char *hex;
 };
 
-// Key for every HMAC-SM3 row.
-inline constexpr const char *hmac_sm3_key = "tsubaki";
+// Key for every HMAC row; each provider keeps the same one.
+inline constexpr const char *hmac_key = "tsubaki";
 
 inline constexpr test_vector sm3_vectors[] = {
     {0, "1ab21d8355cfa17f8e61194831e81a8f22bec8c728fefb747ed035eb5082aa2b"},
@@ -136,6 +136,81 @@ inline constexpr test_vector hmac_sm3_vectors[] = {
     {1024, "c00cfecce255971a299f7134500f2dffaf1bab25630f83db93da9f033d01fce1"},
     {4096, "0d8d3eb857a6d7afd349cf9d7fd1ed30688422aa09d8fa65c38edd235fc31176"},
     {5000, "b84bfb202f39f4e9feb44bf4facf4c4e6027ec7c0ca79c8a322b852024aaded0"},
+};
+
+inline constexpr test_vector keccak256_vectors[] = {
+    {0, "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"},
+    {1, "bc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a"},
+    {3, "f84a97f1f0a956e738abd85c2e0a5026f8874e3ec09c8f012159dfeeaab2b156"},
+    {55, "797f92d5e159d80a886c0a7802a255b475a1e8e473e8cf4345144824a2aee79c"},
+    {56, "0d0bf4902a749dee22eae5f1b6e2b867ba696ce9be7632eba14315ac09bd1856"},
+    {64, "002030bde3d4cf89919649775cd71875c4d0ab1708a380e03fefc3a28aa24831"},
+    {65, "64578d7b8ae53c452c57b27375f3827854a7ead6448dc566d77a6673701f50d3"},
+    {111, "0e2a8043782da1105ca8652bd9280aee14a8bfc26db740686790ea80b09a6a66"},
+    {112, "57b2f6b1b1692c57745fa6d76f34f06273aff8a75fbeb33cdc5456dc450a5bec"},
+    {127, "c52f0bd08793b9e8601b29753539e1bf47f8e483eed0a901e8761982449c9b4c"},
+    {128, "ed4c9adc183fb8cb025b1500ec3eeae1b45517314441a187605de1bb8a64726e"},
+    {129, "e075544a1759c383a96a47f831194f0cf55c96a46b0656547d2f8c6eb96be8d3"},
+    {135, "cbdfd9dee5faad3818d6b06f95a219fd290b0e1706f6a82e5a595b9ce9faca62"},
+    {136, "7ce759f1ab7f9ce437719970c26b0a66ff11fe3e38e17df89cf5d29c7d7f807e"},
+    {137, "ac73d4fae68b8453f764007c1a20ce95994187861f0c3227a3a8e99a73a3b1db"},
+    {1024, "8067fe24dad927632e32dcaf9b7958a5f301cfc4e37f419a08e059290be23370"},
+    {4096, "154a932bb08a718880807903c8724a2e293271f249bd8d7017eb0e9b456a218d"},
+    {5000, "96c1a73504511514cb2aef9a671ba4724324ba87de1dabfe102a8eaa28335fde"},
+};
+
+inline constexpr test_vector sha512_224_vectors[] = {
+    {0, "6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4"},
+    {1, "283bb59af7081ed08197227d8f65b9591ffe1155be43e9550e57f941"},
+    {3, "00fec611d324972280d5b8d125bd43dd6ea2515ce38c3b888e613a07"},
+    {55, "4bc333b55c3237ed85ac21b6b3dfb70987c33ce04e20c2de6142d681"},
+    {56, "df1bb702813c49110142bc858073e618ab22af52faf8d5f0403d3ff0"},
+    {64, "9e2437140847453434acb859bc4f842e9fb4a4b55bd9dc164b74cea4"},
+    {65, "ad09c080e71d330c7af75c34ccfdcdc103c548ebad3a058bf638ab01"},
+    {111, "f8810ee322210d0f4cbd7a4e92e7d7e72b63d2777dcb531e13ddd690"},
+    {112, "8099918892ebbd31215c9bb5e4e53c0b52927b000ced0720d2c65a22"},
+    {127, "29d2c4166a36e07b2dcd3a7c988dcb14776dc187040f6a733162efb7"},
+    {128, "49a64b72a88a3c93432b6e4c59a1b4908403f70e46e13bf7494fbe88"},
+    {129, "aa05964c59a40bb5140f3f1b9ca03c3eee0a1044bbd3fe84e5936877"},
+    {1024, "115afc737e56ffa86f1d4025f4a0cdbc5972a6e96de567c9989a6dad"},
+    {4096, "b8a833e8314ee1e479aca2b7416430a4dbc7a82351aed927ea9cc0b7"},
+    {5000, "17dbd670a961b41c3101af91fb348b341b97a1c0ec40a1bbc05d818e"},
+};
+
+inline constexpr test_vector hmac_sha512_256_vectors[] = {
+    {0, "0601e988bf8d9d6e2cc11360a7fb5943fd2aa026be262ade6dba319a15f121ef"},
+    {1, "1e75e77fbcbd3f6b0242b0615d36e975321e4fbc493ecbd4928580f221c63da6"},
+    {3, "d118a83d74d3390034292137cb06c175ca865b7cb5f0d028681367d9bc32e8ed"},
+    {55, "7f46de9675be87841186da9dad44e3d1ae543aff50e2809e4c4184f58f8f8dea"},
+    {56, "97a21288abdce2afe2d51582cf92f0d9b6bcaefe19ad78b8bdf19e531a106827"},
+    {64, "d949b114fbddb95e940d6085e9c7c2eaf40c2f1321d90a56c6ed689ac4011576"},
+    {65, "1998be3d22f9da960a1423c9d973be0f9d59d5aad00a8f75a8a1beab6f560361"},
+    {111, "586ea7b534e3a9c1d4a051772d1256207934e08384e13cd8f66192eb2a742df1"},
+    {112, "52ed63e20401d5464c99679db23f6539c272a942b4e78f315259b964dfa1a4a4"},
+    {127, "845791b326b288fa2362f914c2b51c5e4a4ac7b96ac4949d2c9a117e63b4da0b"},
+    {128, "1fd0b3523596fddd9715ef8df72f915f56aa751eeb618d367eb2e0275f23158f"},
+    {129, "3464d03bd8858bb850dc3c8f72df5fe59e61ad9756e6e227b5f2acc8dc8c5ce3"},
+    {1024, "bd4e4602c5c4f472cc6a52db2892722a2cd80bc7ad5178ab624bb4ff8fbcfbe8"},
+    {4096, "bfd2e7e7cb1c93a6c4aa2393bf76ad1ebe32da6cc7327f31f065cefbb418e768"},
+    {5000, "63c2e51a6cb1d684610b19cae6466a3bd8dcdc81b9a93fcb7e0b2bf1ccec4fc2"},
+};
+
+inline constexpr test_vector hmac_sha512_224_vectors[] = {
+    {0, "dda62405bd9b915679c9d5b5067b750b200ab91de91a90cc816ec851"},
+    {1, "0b11a3bebe20dd9d20bc21ce4fdea11142fa862bc9d3b2858f92a559"},
+    {3, "2151c3cdee7449f47e57587cbcafe0562752a163c1806e9b9d7ce32d"},
+    {55, "2fa9c3a4f3b255346017f625a48de118618e07a733d548c82a60c8d3"},
+    {56, "ad621d5e152ffd53d6f7d7035a6b96dc857d225b6737da530ae9faff"},
+    {64, "844a30bea61fb6e7124e244e726033d3496f1300884fc9af3ef7b9f3"},
+    {65, "3f1e0486d4c15077af0a72598ed30dccb1e1a22b7d7c116ab0af3e84"},
+    {111, "9d73f7beff2696c57655b224b607e1a01308968d21c1dcee88b1d452"},
+    {112, "1c50553e31472511d92f4cb63e103d7b9b0fe37c3da8934b1a62fa78"},
+    {127, "ed89da68c3b068da627f73e4a01157bf3da8bb37aef7e2dfcf873cee"},
+    {128, "9573f95ad76ecb32d13efe2c1c99c107e0cd0d52946be78e5aecd726"},
+    {129, "646cc36b4c3b3bb056665f1d1103e85b90a491f8759d27554f5e5c48"},
+    {1024, "2cfe1bd4e6f67cbc208e8755efc4b8a0cc3526f0364cd99cc0a141aa"},
+    {4096, "9028d8d79cce413195e3aadbed66367a2b3ee6429be0c200861d7286"},
+    {5000, "7e553e703f48ccba2f9f752143f10ff940d66d211990531e17b184b2"},
 };
 
 #endif

@@ -1,20 +1,24 @@
 # tsubaki-providers
 
-Six algorithms for the dynamic provider ABI of
+Ten algorithms for the dynamic provider ABI of
 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next), built by one
 CMake project. Each module is a standalone `.so` with no dependency beyond
 libstdc++, so a provider directory holds the whole set.
 
 为 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next) 的动态 provider
-ABI 提供六个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
+ABI 提供十个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
 libstdc++ 外没有依赖，一个目录就能放下全套。
 
 | Module | Algorithm | Digest | Keyed |
 | --- | --- | --- | --- |
 | `blake3.so` | BLAKE3 | 32 B | no |
+| `keccak256.so` | Keccak-256 (Ethereum padding) | 32 B | no |
 | `sm3.so` | SM3 (GB/T 32905-2016) | 32 B | no |
 | `hmac_sm3.so` | HMAC-SM3 | 32 B | **yes** |
+| `sha512_224.so` | SHA-512/224 (FIPS 180-4) | 28 B | no |
 | `sha512_256.so` | SHA-512/256 (FIPS 180-4) | 32 B | no |
+| `hmac_sha512_224.so` | HMAC-SHA-512/224 | 28 B | **yes** |
+| `hmac_sha512_256.so` | HMAC-SHA-512/256 | 32 B | **yes** |
 | `sha3_224.so` | SHA3-224 (FIPS 202) | 28 B | no |
 | `sha3_384.so` | SHA3-384 (FIPS 202) | 48 B | no |
 
@@ -40,7 +44,7 @@ that hashes the test vectors twice: in one pass and in uneven pieces.
 
 ```sh
 export TSUBAKI_DYNAMIC_PROVIDER_PATHS=$PWD/build/linux-gcc-release
-tsubaki --algorithm                       # lists the six modules
+tsubaki --algorithm                       # lists the ten modules
 tsubaki sum sm3 .                         # provider name, not a built-in
 tsubaki sum hmac_sm3 . -k secret          # keyed provider
 ```

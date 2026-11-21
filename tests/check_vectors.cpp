@@ -6,6 +6,7 @@
 // block boundaries is exercised both ways.
 
 #include "blake3_hash.hpp"
+#include "hmac.hpp"
 #include "keccak.hpp"
 #include "sha512_hash.hpp"
 #include "sm3_hash.hpp"
@@ -124,8 +125,24 @@ int main()
     check_table("sha3_384", [] { return keccak::sponge<104, 48>{}; },
                 sha3_384_vectors, std::size(sha3_384_vectors));
     check_table("hmac_sm3",
-                [] { return sm3::hmac::hasher(hmac_sm3_key); },
+                [] { return sm3::hmac::hasher(hmac_key); },
                 hmac_sm3_vectors, std::size(hmac_sm3_vectors));
+    check_table("keccak256", [] { return keccak::sponge<136, 32, 0x01>{}; },
+                keccak256_vectors, std::size(keccak256_vectors));
+    check_table("sha512_224", [] { return sha512_224::hasher{}; },
+                sha512_224_vectors, std::size(sha512_224_vectors));
+    check_table("hmac_sha512_256",
+                [] {
+                    return provider_common::hmac<sha512_256::hasher,
+                                                 sha512::block_len>(hmac_key);
+                },
+                hmac_sha512_256_vectors, std::size(hmac_sha512_256_vectors));
+    check_table("hmac_sha512_224",
+                [] {
+                    return provider_common::hmac<sha512_224::hasher,
+                                                 sha512::block_len>(hmac_key);
+                },
+                hmac_sha512_224_vectors, std::size(hmac_sha512_224_vectors));
 
     // Published known-answer tests, independent of the generated tables.
     const std::string abc = "abc";
@@ -140,6 +157,27 @@ int main()
         "hmac_sm3(key, abc)",
         [] { return sm3::hmac::hasher("key"); }, abc,
         "28e63256e7c5a087b1f073265dc53092163f7b82729735d06f28f10af9d52393");
+    check_message(
+        "keccak256(abc)", [] { return keccak::sponge<136, 32, 0x01>{}; }, abc,
+        "4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45");
+    check_message(
+        "sha512_224(abc)", [] { return sha512_224::hasher{}; }, abc,
+        "4634270f707b6a54daae7530460842e20e37ed265ceee9a43e8924aa");
+    check_message(
+        "hmac_sha512_256(key, abc)",
+        [] {
+            return provider_common::hmac<sha512_256::hasher,
+                                         sha512::block_len>("key");
+        },
+        abc,
+        "f367b7ca80ab2cf85c23e58b73a8fd525a6fa2c66ff105804a2d4cf4df06e129");
+    check_message(
+        "hmac_sha512_224(key, abc)",
+        [] {
+            return provider_common::hmac<sha512_224::hasher,
+                                         sha512::block_len>("key");
+        },
+        abc, "28bc0433ef684ea9877c2f2437aa0ccfc2e8eb3a9b4c731606877b4f");
     check_message(
         "sha512(abc)", [] { return sha512::hasher{}; }, abc,
         "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a"
