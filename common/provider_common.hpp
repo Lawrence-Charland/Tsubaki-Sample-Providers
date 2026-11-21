@@ -7,13 +7,15 @@
 #ifndef TSUBAKI_PROVIDER_COMMON_HPP
 #define TSUBAKI_PROVIDER_COMMON_HPP
 
+#include "dynamic_provider_header.hpp"
+
 #include <array>
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <expected>
 #include <fcntl.h>
-#include <filesystem>
 #include <string>
 #include <system_error>
 #include <unistd.h>
@@ -59,10 +61,10 @@ inline std::unexpected<std::error_code> allocation_failure()
 // so the exported wrapper's try/catch is what turns std::bad_alloc into an
 // error_code instead of a terminate.
 template <typename Hasher>
-void hash_file(Hasher &hasher, const std::filesystem::path &path,
+void hash_file(Hasher &hasher, const char *path,
                std::expected<std::string, std::error_code> &out)
 {
-    const int fd = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+    const int fd = ::open(path, O_RDONLY | O_CLOEXEC);
     if (fd < 0)
     {
         out = system_failure(errno);
@@ -91,11 +93,30 @@ void hash_file(Hasher &hasher, const std::filesystem::path &path,
 }
 
 template <typename Hasher>
-void hash_file(const std::filesystem::path &path,
-               std::expected<std::string, std::error_code> &out)
+void hash_file(const char *path, std::expected<std::string, std::error_code> &out)
 {
     Hasher hasher;
     hash_file(hasher, path, out);
+}
+
+// Hands the finished digest over as plain data: tsubaki owns the buffer, so the
+// digest is copied into it, and a failure becomes an errno, because neither a
+// std::string nor a std::error_code may cross the ABI.
+inline void deliver(std::expected<std::string, std::error_code> &out,
+                    tsubaki::tsubaki_checksum_result &result)
+{
+    if (!out)
+    {
+        result.errcode = out.error().value();
+        return;
+    }
+    if (out->size() >= TSUBAKI_MAX_RESULT_LENGTH)
+    {
+        result.errcode = EOVERFLOW;
+        return;
+    }
+    std::memcpy(result.result, out->c_str(), out->size() + 1);
+    result.errcode = 0;
 }
 } // namespace provider_common
 

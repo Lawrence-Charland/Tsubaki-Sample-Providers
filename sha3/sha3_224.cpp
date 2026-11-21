@@ -9,7 +9,6 @@
 #include "provider_common.hpp"
 
 #include <expected>
-#include <filesystem>
 #include <string>
 #include <system_error>
 
@@ -32,15 +31,16 @@ extern "C"
         return false;
     }
 
-    bool tsubaki_check_key(const std::string &) noexcept
+    bool tsubaki_check_key(const char *) noexcept
     {
         return true;
     }
 
-    void tsubaki_checksum_file(
-        const std::filesystem::path &path, const std::string &,
-        std::expected<std::string, std::error_code> &out) noexcept
+    tsubaki_checksum_result tsubaki_checksum_file(const char *path,
+                                                  const char *) noexcept
     {
+        tsubaki_checksum_result result{};
+        std::expected<std::string, std::error_code> out;
         try
         {
             provider_common::hash_file<core>(path, out);
@@ -49,6 +49,8 @@ extern "C"
         {
             out = provider_common::allocation_failure();
         }
+        provider_common::deliver(out, result);
+        return result;
     }
 }
 } // namespace tsubaki::provider

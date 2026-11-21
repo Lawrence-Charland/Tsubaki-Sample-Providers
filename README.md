@@ -59,12 +59,17 @@ lowercase hex of at least 32 characters, and the name is the contract.
 编译，那是 tsubaki 契约的副本：四个 `extern "C"` 符号、全程 `noexcept`、至少
 32 个字符的小写十六进制，且名字本身就是契约。
 
-A provider crosses the ABI with `std::string` / `std::filesystem::path` by
-reference, so it needs the same compiler and standard library as the `tsubaki`
-binary, built as C++23 on Linux.
+A provider crosses the ABI with plain data only: `const char *` arguments it may
+read, and a `tsubaki_checksum_result` returned by value whose digest buffer
+belongs to the caller. Nothing is allocated on one side and freed on the other,
+so a `-fPIC` C++23 shared object for the same architecture is enough; it does
+not have to share the host's standard library, but it must be self-contained
+and match the host's glibc generation.
 
-provider 的 `std::string`、`std::filesystem::path` 是按引用跨 ABI 的，所以必须和
-`tsubaki` 可执行文件用同一套编译器与标准库，在 Linux 上按 C++23 编译。
+provider 跨 ABI 走的只有纯数据：只能读的 `const char *` 参数，以及一个按值返回、
+摘要缓冲归调用方所有的 `tsubaki_checksum_result`。不会出现一边分配、另一边释放的
+情况，所以只要是一个同架构的 `-fPIC` C++23 动态库就够了；它不必和宿主共用同一套
+标准库，但必须自包含，并匹配宿主的 glibc 版本。
 
 ## License / 许可
 

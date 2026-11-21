@@ -9,7 +9,6 @@
 #include "sm3_hash.hpp"
 
 #include <expected>
-#include <filesystem>
 #include <string>
 #include <system_error>
 
@@ -27,15 +26,16 @@ extern "C"
         return true;
     }
 
-    bool tsubaki_check_key(const std::string &key) noexcept
+    bool tsubaki_check_key(const char *key) noexcept
     {
-        return !key.empty();
+        return key != nullptr && key[0] != '\0';
     }
 
-    void tsubaki_checksum_file(
-        const std::filesystem::path &path, const std::string &key,
-        std::expected<std::string, std::error_code> &out) noexcept
+    tsubaki_checksum_result tsubaki_checksum_file(const char *path,
+                                                  const char *key) noexcept
     {
+        tsubaki_checksum_result result{};
+        std::expected<std::string, std::error_code> out;
         try
         {
             sm3::hmac::hasher hasher(key);
@@ -45,6 +45,8 @@ extern "C"
         {
             out = provider_common::allocation_failure();
         }
+        provider_common::deliver(out, result);
+        return result;
     }
 }
 } // namespace tsubaki::provider
