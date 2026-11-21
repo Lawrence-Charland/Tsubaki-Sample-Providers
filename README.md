@@ -1,26 +1,34 @@
 # tsubaki-providers
 
-Ten algorithms for the dynamic provider ABI of
+Eighteen algorithms for the dynamic provider ABI of
 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next), built by one
 CMake project. Each module is a standalone `.so` with no dependency beyond
 libstdc++, so a provider directory holds the whole set.
 
 为 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next) 的动态 provider
-ABI 提供十个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
+ABI 提供十八个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
 libstdc++ 外没有依赖，一个目录就能放下全套。
 
 | Module | Algorithm | Digest | Keyed |
 | --- | --- | --- | --- |
 | `blake3.so` | BLAKE3 | 32 B | no |
-| `keccak256.so` | Keccak-256 (Ethereum padding) | 32 B | no |
-| `sm3.so` | SM3 (GB/T 32905-2016) | 32 B | no |
-| `hmac_sm3.so` | HMAC-SM3 | 32 B | **yes** |
-| `sha512_224.so` | SHA-512/224 (FIPS 180-4) | 28 B | no |
-| `sha512_256.so` | SHA-512/256 (FIPS 180-4) | 32 B | no |
+| `blake3_keyed.so` | BLAKE3 keyed mode, 64 hex chars | 32 B | **yes** |
 | `hmac_sha512_224.so` | HMAC-SHA-512/224 | 28 B | **yes** |
 | `hmac_sha512_256.so` | HMAC-SHA-512/256 | 32 B | **yes** |
+| `hmac_sm3.so` | HMAC-SM3 | 32 B | **yes** |
+| `keccak256.so` | Keccak-256 (Ethereum padding) | 32 B | no |
+| `keccak512.so` | Keccak-512 | 64 B | no |
+| `kmac128.so` | KMAC128 (SP 800-185) | 32 B | **yes** |
+| `kmac256.so` | KMAC256 (SP 800-185) | 64 B | **yes** |
+| `ripemd160.so` | RIPEMD-160 (ISO/IEC 10118-3) | 20 B | no |
 | `sha3_224.so` | SHA3-224 (FIPS 202) | 28 B | no |
 | `sha3_384.so` | SHA3-384 (FIPS 202) | 48 B | no |
+| `sha512_224.so` | SHA-512/224 (FIPS 180-4) | 28 B | no |
+| `sha512_256.so` | SHA-512/256 (FIPS 180-4) | 32 B | no |
+| `shake128_256.so` | SHAKE128, fixed 32-byte output | 32 B | no |
+| `shake256_512.so` | SHAKE256, fixed 64-byte output | 64 B | no |
+| `sm3.so` | SM3 (GB/T 32905-2016) | 32 B | no |
+| `sm4_cmac.so` | SM4-CMAC, 32 hex chars | 16 B | **yes** |
 
 ## Build / 构建
 
@@ -44,14 +52,26 @@ that hashes the test vectors twice: in one pass and in uneven pieces.
 
 ```sh
 export TSUBAKI_DYNAMIC_PROVIDER_PATHS=$PWD/build/linux-gcc-release
-tsubaki --algorithm                       # lists the ten modules
+tsubaki --algorithm                       # lists the eighteen modules
 tsubaki sum sm3 .                         # provider name, not a built-in
 tsubaki sum hmac_sm3 . -k secret          # keyed provider
+tsubaki sum kmac128 . -k secret           # SP 800-185 keyed provider
+tsubaki sum sm4_cmac . -k 0123456789abcdeffedcba9876543210
+tsubaki sum blake3_keyed . -k <64 hex chars>
 ```
 
 A built-in name always wins, so a provider cannot shadow one.
 
 内建算法名优先，provider 覆盖不了它们。
+
+Two providers need a binary key, which the ABI's C string cannot carry
+verbatim: `blake3_keyed` takes 32 bytes as 64 hex characters and `sm4_cmac`
+takes 16 bytes as 32 hex characters. `kmac128`, `kmac256` and the HMAC
+providers use the key text as-is.
+
+有两个 provider 的密钥是二进制，C 字符串带不了原样字节：`blake3_keyed` 要 32 字节，
+按 64 个 hex 字符传；`sm4_cmac` 要 16 字节，按 32 个 hex 字符传。`kmac128`、
+`kmac256` 和几个 HMAC provider 则直接用密钥文本。
 
 Every module is compiled against
 [`include/dynamic_provider_header.hpp`](./include/dynamic_provider_header.hpp),

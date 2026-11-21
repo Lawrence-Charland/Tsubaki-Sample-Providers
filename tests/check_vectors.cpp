@@ -8,8 +8,11 @@
 #include "blake3_hash.hpp"
 #include "hmac.hpp"
 #include "keccak.hpp"
+#include "kmac.hpp"
+#include "ripemd160.hpp"
 #include "sha512_hash.hpp"
 #include "sm3_hash.hpp"
+#include "sm4.hpp"
 #include "vectors.hpp"
 
 #include <cstddef>
@@ -25,6 +28,15 @@
 namespace
 {
 int failures = 0;
+
+// The BLAKE3 test vectors use this 32-byte ASCII key; the SM4-CMAC rows use
+// the key from the SM4 standard.
+constexpr std::uint8_t blake3_test_key[32] = {
+    'w', 'h', 'a', 't', 's', ' ', 't', 'h', 'e', ' ', 'E', 'l', 'v', 'i', 's', 'h',
+    ' ', 'w', 'o', 'r', 'd', ' ', 'f', 'o', 'r', ' ', 'f', 'r', 'i', 'e', 'n', 'd'};
+constexpr std::uint8_t sm4_test_key[16] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
+                                           0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
+                                           0x76, 0x54, 0x32, 0x10};
 
 std::string to_hex(const std::uint8_t *data, std::size_t len)
 {
@@ -143,6 +155,24 @@ int main()
                                                  sha512::block_len>(hmac_key);
                 },
                 hmac_sha512_224_vectors, std::size(hmac_sha512_224_vectors));
+    check_table("keccak512", [] { return keccak::sponge<72, 64, 0x01>{}; },
+                keccak512_vectors, std::size(keccak512_vectors));
+    check_table("shake128_256", [] { return keccak::sponge<168, 32, 0x1f>{}; },
+                shake128_256_vectors, std::size(shake128_256_vectors));
+    check_table("shake256_512", [] { return keccak::sponge<136, 64, 0x1f>{}; },
+                shake256_512_vectors, std::size(shake256_512_vectors));
+    check_table("kmac128",
+                [] { return provider_common::kmac<168, 32>(hmac_key); },
+                kmac128_vectors, std::size(kmac128_vectors));
+    check_table("kmac256",
+                [] { return provider_common::kmac<136, 64>(hmac_key); },
+                kmac256_vectors, std::size(kmac256_vectors));
+    check_table("blake3_keyed", [] { return b3::hasher(blake3_test_key); },
+                blake3_keyed_vectors, std::size(blake3_keyed_vectors));
+    check_table("ripemd160", [] { return ripemd160::hasher{}; },
+                ripemd160_vectors, std::size(ripemd160_vectors));
+    check_table("sm4_cmac", [] { return sm4::cmac(sm4_test_key); },
+                sm4_cmac_vectors, std::size(sm4_cmac_vectors));
 
     // Published known-answer tests, independent of the generated tables.
     const std::string abc = "abc";
@@ -190,6 +220,34 @@ int main()
     check_message("sha3_384(abc)", [] { return keccak::sponge<104, 48>{}; }, abc,
                   "ec01498288516fc926459f58e2c6ad8df9b473cb0fc08c2596da7cf0e49be4b2"
                   "98d88cea927ac7f539f1edf228376d25");
+    check_message(
+        "keccak512(abc)", [] { return keccak::sponge<72, 64, 0x01>{}; }, abc,
+        "18587dc2ea106b9a1563e32b3312421ca164c7f1f07bc922a9c83d77cea3a1e5d0c69910739025372dc14ac9642629379540c17e2a65b19d77aa511a9d00bb96");
+    check_message(
+        "shake128_256(abc)", [] { return keccak::sponge<168, 32, 0x1f>{}; },
+        abc, "5881092dd818bf5cf8a3ddb793fbcba74097d5c526a6d35f97b83351940f2cc8");
+    check_message(
+        "shake256_512(abc)", [] { return keccak::sponge<136, 64, 0x1f>{}; },
+        abc,
+        "483366601360a8771c6863080cc4114d8db44530f8f1e1ee4f94ea37e78b5739d5a15bef186a5386c75744c0527e1faa9f8726e462a12a4feb06bd8801e751e4");
+    check_message(
+        "kmac128(tsubaki, abc)",
+        [] { return provider_common::kmac<168, 32>(hmac_key); }, abc,
+        "95207afe1b851f2d823c79506441aae70a4248180541e6ec946cb2507429aa64");
+    check_message(
+        "kmac256(tsubaki, abc)",
+        [] { return provider_common::kmac<136, 64>(hmac_key); }, abc,
+        "b76ca775a95ffaa8d95fd9072d2bb6af66e7b35f6c0835ae795c16e4d070dae2eeba18178cafaae2dc8513fe2a2e4430a235a749ceb40a0c67d8670de25c41b3");
+    check_message(
+        "blake3_keyed(empty)", [] { return b3::hasher(blake3_test_key); },
+        "",
+        "92b2b75604ed3c761f9d6f62392c8a9227ad0ea3f09573e783f1498a4ed60d26");
+    check_message(
+        "ripemd160(abc)", [] { return ripemd160::hasher{}; }, abc,
+        "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc");
+    check_message(
+        "sm4_cmac(key, abc)", [] { return sm4::cmac(sm4_test_key); }, abc,
+        "8e75238ac2672a6aee408c1e251854d8");
 
     if (failures != 0)
     {

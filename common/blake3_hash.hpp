@@ -28,6 +28,7 @@ enum : std::uint32_t
     flag_chunk_end = 1u << 1,
     flag_parent = 1u << 2,
     flag_root = 1u << 3,
+    flag_keyed_hash = 1u << 4,
 };
 
 inline constexpr std::uint32_t iv[8] = {0x6A09E667u, 0xBB67AE85u, 0x3C6EF372u,
@@ -145,20 +146,22 @@ inline digest_t root_digest(const node &n) noexcept
     return digest;
 }
 
-inline node parent_node(const cv_t &left, const cv_t &right) noexcept
+inline node parent_node(const cv_t &left, const cv_t &right,
+                        const cv_t &key, std::uint32_t flags) noexcept
 {
     node n{};
-    std::copy(std::begin(iv), std::end(iv), n.input_cv.begin());
+    n.input_cv = key;
     std::copy(left.begin(), left.end(), n.block.begin());
     std::copy(right.begin(), right.end(), n.block.begin() + 8);
     n.block_length = static_cast<std::uint32_t>(block_len);
-    n.flags = flag_parent;
+    n.flags = flag_parent | flags;
     return n;
 }
 
-inline cv_t parent_cv(const cv_t &left, const cv_t &right) noexcept
+inline cv_t parent_cv(const cv_t &left, const cv_t &right, const cv_t &key,
+                      std::uint32_t flags) noexcept
 {
-    return chaining_value(parent_node(left, right));
+    return chaining_value(parent_node(left, right, key, flags));
 }
 
 class chunk_state
@@ -166,13 +169,15 @@ class chunk_state
   private:
     cv_t cv_{};
     std::uint64_t counter_ = 0;
+    std::uint32_t base_flags_ = 0;
     std::array<std::uint8_t, block_len> buf_{};
     std::size_t buf_len_ = 0;
     std::size_t blocks_compressed_ = 0;
 
     std::uint32_t start_flag() const noexcept
     {
-        return blocks_compressed_ == 0 ? flag_chunk_start : 0u;
+        return (blocks_compressed_ == 0 ? flag_chunk_start : 0u) |
+               base_flags_;
     }
 
     void compress_block() noexcept
@@ -198,6 +203,12 @@ class chunk_state
     explicit chunk_state(std::uint64_t counter) noexcept : counter_(counter)
     {
         std::copy(std::begin(iv), std::end(iv), cv_.begin());
+    }
+
+    chunk_state(const cv_t &key, std::uint32_t flags,
+                std::uint64_t counter) noexcept
+        : cv_(key), counter_(counter), base_flags_(flags)
+    {
     }
 
     std::size_t len() const noexcept
@@ -263,6 +274,8 @@ class chunk_state
 class hasher
 {
   private:
+    cv_t key_cv_ = {iv[0], iv[1], iv[2], iv[3], iv[4], iv[5], iv[6], iv[7]};
+    std::uint32_t base_flags_ = 0;
     chunk_state chunk_{0};
     std::array<cv_t, max_depth> stack_{};
     std::size_t stack_len_ = 0;
@@ -273,13 +286,28 @@ class hasher
         while ((total_chunks & 1u) == 0)
         {
             --stack_len_;
-            cv = parent_cv(stack_[stack_len_], cv);
+            cv = parent_cv(stack_[stack_len_], cv, key_cv_, base_flags_);
             total_chunks >>= 1;
         }
         stack_[stack_len_++] = cv;
     }
 
   public:
+    hasher() noexcept = default;
+
+    // BLAKE3's keyed mode: the 32-byte key becomes the initial chaining value
+    // and KEYED_HASH rides along in every compression.
+    explicit hasher(const std::uint8_t key[32]) noexcept
+        : base_flags_(flag_keyed_hash)
+    {
+        for (std::size_t i = 0; i < 8; ++i)
+            key_cv_[i] = static_cast<std::uint32_t>(key[4 * i]) |
+                         static_cast<std::uint32_t>(key[4 * i + 1]) << 8 |
+                         static_cast<std::uint32_t>(key[4 * i + 2]) << 16 |
+                         static_cast<std::uint32_t>(key[4 * i + 3]) << 24;
+        chunk_ = chunk_state(key_cv_, base_flags_, 0);
+    }
+
     void update(const std::uint8_t *input, std::size_t input_len) noexcept
     {
         while (input_len > 0)
@@ -288,7 +316,7 @@ class hasher
             {
                 const std::uint64_t total = chunk_.counter() + 1;
                 push_chunk_cv(chaining_value(chunk_.final_node()), total);
-                chunk_ = chunk_state(total);
+                chunk_ = chunk_state(key_cv_, base_flags_, total);
             }
             std::size_t take = chunk_len - chunk_.len();
             if (take > input_len)
@@ -303,7 +331,8 @@ class hasher
     {
         node n = chunk_.final_node();
         for (std::size_t remaining = stack_len_; remaining > 0; --remaining)
-            n = parent_node(stack_[remaining - 1], chaining_value(n));
+            n = parent_node(stack_[remaining - 1], chaining_value(n), key_cv_,
+                            base_flags_);
         return root_digest(n);
     }
 };
