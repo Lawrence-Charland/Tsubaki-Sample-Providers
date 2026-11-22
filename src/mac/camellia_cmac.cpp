@@ -26,13 +26,7 @@ using core = provider_common::cmac<camellia::cipher>;
 bool decode_key(const char *key, std::size_t length, std::uint8_t *out,
                 std::size_t &out_len) noexcept
 {
-    if (key == nullptr)
-        return false;
-    const std::size_t chars = length;
-    if (chars != 32 && chars != 48 && chars != 64)
-        return false;
-    out_len = chars / 2;
-    return provider_common::parse_hex(key, length, out, out_len);
+    return provider_common::decode_key_variable(key, length, out, out_len);
 }
 } // namespace
 
@@ -48,9 +42,9 @@ extern "C"
     const char *tsubaki_algo_info() noexcept
     {
         return "Digest:     16 bytes\n"
-               "Key:        32, 48 or 64 hex chars\n"
-               "Note:       Camellia-CMAC (RFC 3713, SP 800-38B). The key arrives as hex: 32,\n"
-               "            48 or 64 characters for 128-, 192- or 256-bit Camellia.";
+               "Key:        32/48/64 hex or 16/24/32 raw bytes\n"
+               "Note:       Camellia-CMAC (RFC 3713, SP 800-38B). The key may be 32, 48 or 64\n"
+               "            hex characters, or 16, 24 or 32 raw bytes.";
     }
 
     bool tsubaki_is_keyed() noexcept

@@ -106,21 +106,24 @@ A built-in name always wins, so a provider cannot shadow one.
 
 Six providers take a binary key. The ABI hands the key over as a byte string
 with an explicit length -- `tsubaki_check_key(key, length)` and
-`tsubaki_checksum_file(path, key, length)` -- so a NUL inside a key no longer
-truncates anything. These providers still ask for the key as hex text, because
-that is what can be pasted onto a command line: `blake3_keyed` takes 32 bytes
-as 64 hex characters, `sm4_cmac` and `seed_cmac` take 16 bytes as 32
-characters, and `aes_cmac`, `camellia_cmac` and `aria_cmac` accept 32, 48 or 64
-characters for their three key sizes. `kmac128`, `kmac256` and the HMAC
-providers use the key text as-is.
+`tsubaki_checksum_file(path, key, length)` -- so a NUL inside a key is no longer
+truncated. Each of them accepts either spelling: the hex text that can be
+pasted onto a command line, or the raw bytes themselves, which is what `-K` is
+for. `blake3_keyed` takes 32 bytes (64 hex characters), `sm4_cmac` and
+`seed_cmac` take 16 bytes (32 characters), and `aes_cmac`, `camellia_cmac` and
+`aria_cmac` take 16, 24 or 32 bytes (32, 48 or 64 characters). For the last
+three, a 32-byte raw key made only of hex digits is read as a 16-byte hex key;
+spell it out as 48 hex characters if that collision matters.
 
-有六个 provider 的密钥是二进制。ABI 现在把密钥当字节串传，长度单独给出——
+有六个 provider 的密钥是二进制。ABI 把密钥当字节串传，长度单独给出——
 `tsubaki_check_key(key, length)`，以及对应的
-`tsubaki_checksum_file(path, key, length)`——所以密钥里的 NUL 不再截断任何东西。
-这几个 provider 仍然要求 hex 文本，因为那样才能直接写在命令行上：`blake3_keyed`
-要 32 字节，按 64 个 hex 字符传；`sm4_cmac`、`seed_cmac` 要 16 字节，按 32 个字符
-传；`aes_cmac`、`camellia_cmac`、`aria_cmac` 接受 32、48、64 个字符，对应三种密钥
-长度。`kmac128`、`kmac256` 和几个 HMAC provider 则直接用密钥文本。
+`tsubaki_checksum_file(path, key, length)`——所以密钥里的 NUL 不再被截断。这六个
+两种写法都收：能直接贴在命令行上的 hex 文本，或者原始字节（用 `-K` 指定文件）。
+`blake3_keyed` 要 32 字节（64 个 hex 字符）；`sm4_cmac`、`seed_cmac` 要 16 字节
+（32 个字符）；`aes_cmac`、`camellia_cmac`、`aria_cmac` 要 16、24 或 32 字节
+（32、48 或 64 个字符）。后三个有个例外：如果 32 字节的原始密钥恰好全部是 hex
+字符，它会被当成 16 字节的 hex 密钥；真在意的话就写成 48 个 hex 字符。
+`kmac128`、`kmac256` 和几个 HMAC provider 则直接用密钥文本。
 
 Every module is compiled against
 [`include/dynamic_provider_header.hpp`](./include/dynamic_provider_header.hpp),

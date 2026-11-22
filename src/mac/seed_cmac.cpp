@@ -24,7 +24,7 @@ using core = provider_common::cmac<seed::cipher>;
 
 bool decode_key(const char *key, std::size_t length, std::uint8_t out[seed::block_len]) noexcept
 {
-    return provider_common::parse_hex(key, length, out, seed::block_len);
+    return provider_common::decode_key_bytes(key, length, out, seed::block_len);
 }
 } // namespace
 
@@ -40,9 +40,9 @@ extern "C"
     const char *tsubaki_algo_info() noexcept
     {
         return "Digest:     16 bytes\n"
-               "Key:        32 hex chars (16 bytes)\n"
-               "Note:       SEED-CMAC (RFC 4269, SP 800-38B). The 16-byte key arrives as 32\n"
-               "            hex characters.";
+               "Key:        32 hex chars or 16 raw bytes\n"
+               "Note:       SEED-CMAC (RFC 4269, SP 800-38B). The 16-byte key can be given as\n"
+               "            32 hex characters or as 16 raw bytes.";
     }
 
     bool tsubaki_is_keyed() noexcept

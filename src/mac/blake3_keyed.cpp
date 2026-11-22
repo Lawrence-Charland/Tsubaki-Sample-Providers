@@ -22,7 +22,7 @@ namespace
 bool decode_key(const char *key, std::size_t length,
                 std::uint8_t out[32]) noexcept
 {
-    return provider_common::parse_hex(key, length, out, 32);
+    return provider_common::decode_key_bytes(key, length, out, 32);
 }
 } // namespace
 
@@ -38,9 +38,9 @@ extern "C"
     const char *tsubaki_algo_info() noexcept
     {
         return "Digest:     32 bytes\n"
-               "Key:        64 hex chars (32 bytes)\n"
+               "Key:        64 hex chars or 32 raw bytes\n"
                "Note:       BLAKE3 keyed mode. The 32-byte key is the first four words of the\n"
-               "            key schedule, so it must be exactly 64 hex characters.";
+               "            key schedule; pass it as 64 hex characters or as 32 raw bytes.";
     }
 
     bool tsubaki_is_keyed() noexcept
