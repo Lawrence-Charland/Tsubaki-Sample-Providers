@@ -4,6 +4,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(tsubaki-providers LANGUAGES CXX)
 
+# Same platform floor as tsubaki itself: the providers read files with
+# fcntl.h/unistd.h and are dlopen'd, so they target POSIX systems only.
+if(WIN32 AND NOT CYGWIN)
+    message(FATAL_ERROR
+        "tsubaki-providers target POSIX systems only (fcntl.h, unistd.h). "
+        "Native Windows is not supported; build under Cygwin or WSL instead.")
+endif()
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -34,6 +42,11 @@ function(tsubaki_provider name)
         PREFIX ""
         OUTPUT_NAME "${name}"
         CXX_VISIBILITY_PRESET default)
+    # On Cygwin a MODULE library is a .dll, but tsubaki only dlopen's files
+    # named *.so. Linux, macOS and the BSDs already produce .so here.
+    if(CYGWIN)
+        set_target_properties(${name} PROPERTIES SUFFIX ".so")
+    endif()
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(${name} PRIVATE -Wall -Wextra)
     endif()

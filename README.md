@@ -36,6 +36,20 @@ Needs CMake 3.28 or newer with Ninja, and a C++23 compiler.
 
 需要 CMake 3.28 或更新的版本（带 Ninja），以及支持 C++23 的编译器。
 
+The presets mirror the main tsubaki repository: `linux-gcc-debug`,
+`linux-gcc-release`, `linux-clang-debug` (a second compiler's opinion on
+warnings), `macos-debug`/`macos-release`, `freebsd-debug`/`freebsd-release`,
+and `posix-debug`/`posix-release` for the other POSIX systems. The Linux
+presets pin their compiler by absolute path, so pass
+`-DCMAKE_CXX_COMPILER=/path/to/c++` on the configure line if yours lives
+elsewhere; the rest use the platform default.
+
+预设与 tsubaki 主仓库一致：`linux-gcc-debug`、`linux-gcc-release`、
+`linux-clang-debug`（换一个编译器核对告警）、`macos-debug`/`macos-release`、
+`freebsd-debug`/`freebsd-release`，以及其它 POSIX 系统用的
+`posix-debug`/`posix-release`。Linux 预设用绝对路径固定了编译器，装在别处就在配置时加
+`-DCMAKE_CXX_COMPILER=/path/to/c++`；其余预设交给系统默认编译器。
+
 ```sh
 cmake --preset linux-gcc-release
 cmake --build --preset linux-gcc-release

@@ -1,6 +1,10 @@
 {
   "version": 8,
-  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
   "$schema": "https://cmake.org/cmake/help/v3.28/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json",
   "configurePresets": [
     {
@@ -17,20 +21,143 @@
       "name": "linux-gcc-debug",
       "displayName": "Linux GCC Debug",
       "inherits": "base",
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "gcc"
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
       }
     },
     {
       "name": "linux-gcc-release",
       "displayName": "Linux GCC Release",
       "inherits": "base",
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_COMPILER": "gcc"
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+      }
+    },
+    {
+      "name": "linux-clang-debug",
+      "displayName": "Linux Clang Debug (second opinion)",
+      "description": "The one non-GCC preset: build this when you want a second compiler to look at warnings.",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Clang Debug",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "description": "Uses the platform default toolchain; pass -DCMAKE_CXX_COMPILER to override."
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Clang Release",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "description": "Uses the platform default toolchain; pass -DCMAKE_CXX_COMPILER to override."
+    },
+    {
+      "name": "freebsd-debug",
+      "displayName": "FreeBSD Clang Debug",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "FreeBSD"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "description": "Uses the platform default toolchain; pass -DCMAKE_CXX_COMPILER to override."
+    },
+    {
+      "name": "freebsd-release",
+      "displayName": "FreeBSD Clang Release",
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "FreeBSD"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "description": "Uses the platform default toolchain; pass -DCMAKE_CXX_COMPILER to override."
+    },
+    {
+      "name": "posix-debug",
+      "displayName": "Other POSIX Debug",
+      "description": "NetBSD, OpenBSD, DragonFly, illumos, Solaris, Cygwin. Uses the default c++ in PATH.",
+      "inherits": "base",
+      "condition": {
+        "type": "not",
+        "condition": {
+          "type": "inList",
+          "string": "${hostSystemName}",
+          "list": [
+            "Linux",
+            "Windows",
+            "Darwin",
+            "FreeBSD"
+          ]
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "posix-release",
+      "displayName": "Other POSIX Release",
+      "description": "NetBSD, OpenBSD, DragonFly, illumos, Solaris, Cygwin. Uses the default c++ in PATH.",
+      "inherits": "base",
+      "condition": {
+        "type": "not",
+        "condition": {
+          "type": "inList",
+          "string": "${hostSystemName}",
+          "list": [
+            "Linux",
+            "Windows",
+            "Darwin",
+            "FreeBSD"
+          ]
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],
@@ -38,12 +165,99 @@
     {
       "name": "linux-gcc-debug",
       "configurePreset": "linux-gcc-debug",
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
     },
     {
       "name": "linux-gcc-release",
       "configurePreset": "linux-gcc-release",
-      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-clang-debug",
+      "configurePreset": "linux-clang-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "freebsd-debug",
+      "configurePreset": "freebsd-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "FreeBSD"
+      }
+    },
+    {
+      "name": "freebsd-release",
+      "configurePreset": "freebsd-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "FreeBSD"
+      }
+    },
+    {
+      "name": "posix-debug",
+      "configurePreset": "posix-debug",
+      "condition": {
+        "type": "not",
+        "condition": {
+          "type": "inList",
+          "string": "${hostSystemName}",
+          "list": [
+            "Linux",
+            "Windows",
+            "Darwin",
+            "FreeBSD"
+          ]
+        }
+      }
+    },
+    {
+      "name": "posix-release",
+      "configurePreset": "posix-release",
+      "condition": {
+        "type": "not",
+        "condition": {
+          "type": "inList",
+          "string": "${hostSystemName}",
+          "list": [
+            "Linux",
+            "Windows",
+            "Darwin",
+            "FreeBSD"
+          ]
+        }
+      }
     }
   ]
 }
