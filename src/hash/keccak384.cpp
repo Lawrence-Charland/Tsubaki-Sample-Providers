@@ -39,13 +39,14 @@ extern "C"
         return false;
     }
 
-    bool tsubaki_check_key(const char *) noexcept
+    bool tsubaki_check_key(const char *, std::size_t) noexcept
     {
         return true;
     }
 
     tsubaki_checksum_result tsubaki_checksum_file(const char *path,
-                                                  const char *) noexcept
+                                                  const char *,
+                                                  std::size_t) noexcept
     {
         tsubaki_checksum_result result{};
         std::expected<std::string, std::error_code> out;

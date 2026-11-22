@@ -104,25 +104,32 @@ A built-in name always wins, so a provider cannot shadow one.
 
 内建算法名优先，provider 覆盖不了它们。
 
-Six providers need a binary key, which the ABI's C string cannot carry
-verbatim: `blake3_keyed` takes 32 bytes as 64 hex characters, and `sm4_cmac`,
-`seed_cmac`, `aes_cmac`, `camellia_cmac` and `aria_cmac` take hex too -- 32
-characters for SM4 and SEED, and 32, 48 or 64 for the three that accept
-128-, 192- and 256-bit keys. `kmac128`, `kmac256` and the HMAC providers use
-the key text as-is.
+Six providers take a binary key. The ABI hands the key over as a byte string
+with an explicit length -- `tsubaki_check_key(key, length)` and
+`tsubaki_checksum_file(path, key, length)` -- so a NUL inside a key no longer
+truncates anything. These providers still ask for the key as hex text, because
+that is what can be pasted onto a command line: `blake3_keyed` takes 32 bytes
+as 64 hex characters, `sm4_cmac` and `seed_cmac` take 16 bytes as 32
+characters, and `aes_cmac`, `camellia_cmac` and `aria_cmac` accept 32, 48 or 64
+characters for their three key sizes. `kmac128`, `kmac256` and the HMAC
+providers use the key text as-is.
 
-有六个 provider 的密钥是二进制，C 字符串带不了原样字节：`blake3_keyed` 要 32 字节，
-按 64 个 hex 字符传；`sm4_cmac`、`seed_cmac`、`aes_cmac`、`camellia_cmac`、
-`aria_cmac` 也都走 hex——SM4 和 SEED 是 32 个字符，另外三个接受 128、192、256 位
-密钥，对应 32、48、64 个字符。`kmac128`、`kmac256` 和几个 HMAC provider 则直接用
-密钥文本。
+有六个 provider 的密钥是二进制。ABI 现在把密钥当字节串传，长度单独给出——
+`tsubaki_check_key(key, length)`，以及对应的
+`tsubaki_checksum_file(path, key, length)`——所以密钥里的 NUL 不再截断任何东西。
+这几个 provider 仍然要求 hex 文本，因为那样才能直接写在命令行上：`blake3_keyed`
+要 32 字节，按 64 个 hex 字符传；`sm4_cmac`、`seed_cmac` 要 16 字节，按 32 个字符
+传；`aes_cmac`、`camellia_cmac`、`aria_cmac` 接受 32、48、64 个字符，对应三种密钥
+长度。`kmac128`、`kmac256` 和几个 HMAC provider 则直接用密钥文本。
 
 Every module is compiled against
 [`include/dynamic_provider_header.hpp`](./include/dynamic_provider_header.hpp),
 a copy of tsubaki's contract: four required `extern "C"` symbols plus an
 optional `tsubaki_algo_info()`, `noexcept` throughout, lowercase hex of at least
 32 characters, and the name is the contract. Every module here exports the
-optional symbol, so `tsubaki algo-info` has something to print. The `Source:`
+optional symbol, so `tsubaki algo-info` has something to print. The key is
+passed with an explicit length, so a module built against the older two-argument
+`tsubaki_check_key()` has to be rebuilt. The `Source:`
 line in that output is tsubaki's own -- `built-in` or the module path -- and is
 not part of what a module returns.
 
@@ -131,6 +138,7 @@ not part of what a module returns.
 编译，那是 tsubaki 契约的副本：四个必需的 `extern "C"` 符号，外加一个可选的
 `tsubaki_algo_info()`，全程 `noexcept`、至少 32 个字符的小写十六进制，且名字本身
 就是契约。本目录的模块全都导出了那个可选符号，所以 `tsubaki algo-info` 有东西可打。
+密钥带长度传递，所以按旧的单参数 `tsubaki_check_key()` 编译的模块必须重编译。
 输出里的 `Source:` 那一行是 tsubaki 自己加的——内建显示 `built-in`，动态模块显示
 `.so` 路径——不属于模块返回的内容。
 

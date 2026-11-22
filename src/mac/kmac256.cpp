@@ -10,6 +10,7 @@
 
 #include <expected>
 #include <string>
+#include <string_view>
 #include <system_error>
 
 namespace
@@ -39,19 +40,21 @@ extern "C"
         return true;
     }
 
-    bool tsubaki_check_key(const char *key) noexcept
+    bool tsubaki_check_key(const char *key,
+                           std::size_t length) noexcept
     {
-        return key != nullptr && key[0] != '\0';
+        return key != nullptr && length != 0;
     }
 
     tsubaki_checksum_result tsubaki_checksum_file(const char *path,
-                                                  const char *key) noexcept
+                                                  const char *key,
+                                                  std::size_t length) noexcept
     {
         tsubaki_checksum_result result{};
         std::expected<std::string, std::error_code> out;
         try
         {
-            core hasher(key != nullptr ? key : "");
+            core hasher(std::string_view(key != nullptr ? key : "", length));
             provider_common::hash_file(hasher, path, out);
         }
         catch (...)

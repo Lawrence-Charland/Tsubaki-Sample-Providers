@@ -24,11 +24,12 @@ inline int hex_value(char c) noexcept
     return -1;
 }
 
-// True only when `key` is exactly 2 * out_len hex characters.
-inline bool parse_hex(const char *key, std::uint8_t *out,
+// True only when `key` is exactly 2 * out_len hex characters. `key_len` comes
+// from the ABI, so the key may be any byte string: no strlen, no NUL scan.
+inline bool parse_hex(const char *key, std::size_t key_len, std::uint8_t *out,
                       std::size_t out_len) noexcept
 {
-    if (key == nullptr || std::strlen(key) != 2 * out_len)
+    if (key == nullptr || key_len != 2 * out_len)
         return false;
     for (std::size_t i = 0; i < out_len; ++i)
     {

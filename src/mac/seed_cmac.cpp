@@ -22,9 +22,9 @@ namespace
 {
 using core = provider_common::cmac<seed::cipher>;
 
-bool decode_key(const char *key, std::uint8_t out[seed::block_len]) noexcept
+bool decode_key(const char *key, std::size_t length, std::uint8_t out[seed::block_len]) noexcept
 {
-    return provider_common::parse_hex(key, out, seed::block_len);
+    return provider_common::parse_hex(key, length, out, seed::block_len);
 }
 } // namespace
 
@@ -50,19 +50,21 @@ extern "C"
         return true;
     }
 
-    bool tsubaki_check_key(const char *key) noexcept
+    bool tsubaki_check_key(const char *key,
+                           std::size_t length) noexcept
     {
         std::uint8_t decoded[seed::block_len];
-        return decode_key(key, decoded);
+        return decode_key(key, length, decoded);
     }
 
     tsubaki_checksum_result tsubaki_checksum_file(const char *path,
-                                                  const char *key) noexcept
+                                                  const char *key,
+                                                  std::size_t length) noexcept
     {
         tsubaki_checksum_result result{};
         std::expected<std::string, std::error_code> out;
         std::uint8_t decoded[seed::block_len];
-        if (!decode_key(key, decoded))
+        if (!decode_key(key, length, decoded))
         {
             out = std::unexpected(
                 std::error_code(EINVAL, std::system_category()));

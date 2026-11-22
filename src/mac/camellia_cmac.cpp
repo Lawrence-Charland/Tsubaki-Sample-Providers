@@ -23,16 +23,16 @@ namespace
 {
 using core = provider_common::cmac<camellia::cipher>;
 
-bool decode_key(const char *key, std::uint8_t *out,
+bool decode_key(const char *key, std::size_t length, std::uint8_t *out,
                 std::size_t &out_len) noexcept
 {
     if (key == nullptr)
         return false;
-    const std::size_t chars = std::strlen(key);
+    const std::size_t chars = length;
     if (chars != 32 && chars != 48 && chars != 64)
         return false;
     out_len = chars / 2;
-    return provider_common::parse_hex(key, out, out_len);
+    return provider_common::parse_hex(key, length, out, out_len);
 }
 } // namespace
 
@@ -58,21 +58,23 @@ extern "C"
         return true;
     }
 
-    bool tsubaki_check_key(const char *key) noexcept
+    bool tsubaki_check_key(const char *key,
+                           std::size_t length) noexcept
     {
         std::uint8_t decoded[32];
         std::size_t len = 0;
-        return decode_key(key, decoded, len);
+        return decode_key(key, length, decoded, len);
     }
 
     tsubaki_checksum_result tsubaki_checksum_file(const char *path,
-                                                  const char *key) noexcept
+                                                  const char *key,
+                                                  std::size_t length) noexcept
     {
         tsubaki_checksum_result result{};
         std::expected<std::string, std::error_code> out;
         std::uint8_t decoded[32];
         std::size_t len = 0;
-        if (!decode_key(key, decoded, len))
+        if (!decode_key(key, length, decoded, len))
         {
             out = std::unexpected(
                 std::error_code(EINVAL, std::system_category()));
