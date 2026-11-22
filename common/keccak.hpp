@@ -19,8 +19,12 @@ inline std::uint64_t rotl(std::uint64_t x, unsigned n) noexcept
     return n == 0 ? x : (x << n) | (x >> (64u - n));
 }
 
-inline void f1600(std::uint64_t a[25]) noexcept
+// rounds is 24 for Keccak-f[1600] proper, or 12 for Keccak-p[1600,12], which
+// FIPS 202 defines as the last 12 rounds of the full permutation.
+template <unsigned rounds = 24> inline void f1600(std::uint64_t a[25]) noexcept
 {
+    static_assert(rounds == 12 || rounds == 24,
+                  "Keccak-p[1600] is only used with 12 or 24 rounds");
     static constexpr std::uint64_t round_constant[24] = {
         0x0000000000000001ull, 0x0000000000008082ull, 0x800000000000808aull,
         0x8000000080008000ull, 0x000000000000808bull, 0x0000000080000001ull,
@@ -35,7 +39,7 @@ inline void f1600(std::uint64_t a[25]) noexcept
                                          20, 3,  10, 43, 25, 39, 41, 45, 15,
                                          21, 8,  18, 2,  61, 56, 14};
 
-    for (std::size_t round = 0; round < 24; ++round)
+    for (std::size_t round = 0; round < rounds; ++round)
     {
         std::uint64_t c[5];
         for (std::size_t x = 0; x < 5; ++x)
@@ -57,14 +61,17 @@ inline void f1600(std::uint64_t a[25]) noexcept
                 a[x + 5 * y] = b[x + 5 * y] ^
                                (~b[(x + 1) % 5 + 5 * y] & b[(x + 2) % 5 + 5 * y]);
 
-        a[0] ^= round_constant[round];
+        a[0] ^= round_constant[round + (24 - rounds)];
     }
 }
 
 // rate is the sponge rate in bytes (144 for SHA3-224, 104 for SHA3-384, 136
 // for Keccak-256). domain is the byte that integrates the first padding bit:
 // 0x06 for SHA-3, 0x01 for plain Keccak, 0x1F for SHAKE and TurboSHAKE.
-template <std::size_t rate, std::size_t out_len, std::uint8_t domain = 0x06>
+// rounds selects the permutation: 24 for everything FIPS 202 defines, 12 for
+// the reduced variant that TurboSHAKE and KangarooTwelve build on.
+template <std::size_t rate, std::size_t out_len, std::uint8_t domain = 0x06,
+          unsigned rounds = 24>
 class sponge
 {
     static_assert(rate % 8 == 0 && rate < 200, "rate is a whole number of lanes");
@@ -84,7 +91,7 @@ class sponge
                 value |= std::uint64_t(block[8 * lane + i]) << (8 * i);
             state_[lane] ^= value;
         }
-        f1600(state_);
+        f1600<rounds>(state_);
     }
 
   public:

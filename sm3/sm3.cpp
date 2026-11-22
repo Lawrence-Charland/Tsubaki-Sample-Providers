@@ -20,6 +20,14 @@ extern "C"
         return "sm3";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        none\n"
+               "Note:       SM3 (GB/T 32905-2016). The Chinese national hash, required by many\n"
+               "            domestic systems.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

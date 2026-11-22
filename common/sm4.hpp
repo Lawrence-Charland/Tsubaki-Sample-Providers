@@ -8,6 +8,8 @@
 #ifndef TSUBAKI_PROVIDER_SM4_HPP
 #define TSUBAKI_PROVIDER_SM4_HPP
 
+#include "cmac.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -85,7 +87,11 @@ class cipher
     std::uint32_t rk_[32] = {};
 
   public:
-    explicit cipher(const std::uint8_t key[block_len]) noexcept
+    using block_t = ::sm4::block_t;
+    static constexpr std::size_t block_len = ::sm4::block_len;
+
+    cipher(const std::uint8_t *key,
+           [[maybe_unused]] std::size_t key_len) noexcept
     {
         std::uint32_t k[4];
         for (std::size_t i = 0; i < 4; ++i)
@@ -138,87 +144,9 @@ class cipher
     }
 };
 
-// CMAC over SM4. The caller keeps the last block buffered so the final one can
-// be masked with K1 or K2, exactly as SP 800-38B describes.
-class cmac
-{
-  private:
-    cipher cipher_;
-    block_t k1_{};
-    block_t k2_{};
-    block_t x_{};
-    block_t buf_{};
-    std::size_t buf_len_ = 0;
+// CMAC over SM4, from the shared template.
+using cmac = provider_common::cmac<cipher>;
 
-    static block_t dbl(const block_t &in) noexcept
-    {
-        block_t out{};
-        std::uint8_t carry = 0;
-        for (std::size_t i = 0; i < block_len; ++i)
-        {
-            const std::size_t j = block_len - 1 - i;
-            out[j] = static_cast<std::uint8_t>((in[j] << 1) | carry);
-            carry = static_cast<std::uint8_t>(in[j] >> 7);
-        }
-        if (carry)
-            out[block_len - 1] ^= 0x87;
-        return out;
-    }
-
-    void process(const block_t &block) noexcept
-    {
-        block_t mixed{};
-        for (std::size_t i = 0; i < block_len; ++i)
-            mixed[i] = static_cast<std::uint8_t>(x_[i] ^ block[i]);
-        x_ = cipher_.encrypt(mixed);
-    }
-
-  public:
-    explicit cmac(const std::uint8_t key[block_len]) noexcept
-        : cipher_(key)
-    {
-        const block_t zero{};
-        k1_ = dbl(cipher_.encrypt(zero));
-        k2_ = dbl(k1_);
-    }
-
-    void update(const std::uint8_t *input, std::size_t input_len) noexcept
-    {
-        while (input_len > 0)
-        {
-            if (buf_len_ == block_len)
-            {
-                process(buf_);
-                buf_len_ = 0;
-            }
-            const std::size_t take =
-                std::min(block_len - buf_len_, input_len);
-            std::copy(input, input + take, buf_.begin() + buf_len_);
-            buf_len_ += take;
-            input += take;
-            input_len -= take;
-        }
-    }
-
-    block_t finalize() noexcept
-    {
-        block_t last{};
-        if (buf_len_ == block_len)
-        {
-            for (std::size_t i = 0; i < block_len; ++i)
-                last[i] = static_cast<std::uint8_t>(buf_[i] ^ k1_[i]);
-        }
-        else
-        {
-            std::copy(buf_.begin(), buf_.begin() + buf_len_, last.begin());
-            last[buf_len_] = 0x80;
-            for (std::size_t i = 0; i < block_len; ++i)
-                last[i] = static_cast<std::uint8_t>(last[i] ^ k2_[i]);
-        }
-        process(last);
-        return x_;
-    }
-};
 } // namespace sm4
 
 #endif

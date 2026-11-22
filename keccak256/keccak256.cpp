@@ -27,6 +27,14 @@ extern "C"
         return "keccak256";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        none\n"
+               "Note:       Keccak-256 with the original 0x01 padding, the one Ethereum uses.\n"
+               "            Not SHA3-256.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

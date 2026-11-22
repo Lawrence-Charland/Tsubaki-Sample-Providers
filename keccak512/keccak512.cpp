@@ -26,6 +26,13 @@ extern "C"
         return "keccak512";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     64 bytes\n"
+               "Key:        none\n"
+               "Note:       Keccak-512 with the original 0x01 padding. Not SHA3-512.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

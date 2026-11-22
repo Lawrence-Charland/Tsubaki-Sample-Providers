@@ -1,26 +1,34 @@
 # tsubaki-providers
 
-Eighteen algorithms for the dynamic provider ABI of
+Twenty-eight algorithms for the dynamic provider ABI of
 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next), built by one
 CMake project. Each module is a standalone `.so` with no dependency beyond
 libstdc++, so a provider directory holds the whole set.
 
 为 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next) 的动态 provider
-ABI 提供十八个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
+ABI 提供二十八个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
 libstdc++ 外没有依赖，一个目录就能放下全套。
 
 | Module | Algorithm | Digest | Keyed |
 | --- | --- | --- | --- |
+| `aes_cmac.so` | AES-CMAC, 32/48/64 hex chars | 16 B | **yes** |
+| `aria_cmac.so` | ARIA-CMAC (RFC 5794), 32/48/64 hex chars | 16 B | **yes** |
 | `blake3.so` | BLAKE3 | 32 B | no |
 | `blake3_keyed.so` | BLAKE3 keyed mode, 64 hex chars | 32 B | **yes** |
+| `camellia_cmac.so` | Camellia-CMAC (RFC 3713), 32/48/64 hex chars | 16 B | **yes** |
 | `hmac_sha512_224.so` | HMAC-SHA-512/224 | 28 B | **yes** |
 | `hmac_sha512_256.so` | HMAC-SHA-512/256 | 32 B | **yes** |
 | `hmac_sm3.so` | HMAC-SM3 | 32 B | **yes** |
+| `keccak224.so` | Keccak-224 (Ethereum padding) | 28 B | no |
 | `keccak256.so` | Keccak-256 (Ethereum padding) | 32 B | no |
+| `keccak384.so` | Keccak-384 | 48 B | no |
 | `keccak512.so` | Keccak-512 | 64 B | no |
 | `kmac128.so` | KMAC128 (SP 800-185) | 32 B | **yes** |
 | `kmac256.so` | KMAC256 (SP 800-185) | 64 B | **yes** |
+| `kt128.so` | KT128 / KangarooTwelve (RFC 9861) | 32 B | no |
+| `kt256.so` | KT256 / KangarooTwelve (RFC 9861) | 64 B | no |
 | `ripemd160.so` | RIPEMD-160 (ISO/IEC 10118-3) | 20 B | no |
+| `seed_cmac.so` | SEED-CMAC (RFC 4269), 32 hex chars | 16 B | **yes** |
 | `sha3_224.so` | SHA3-224 (FIPS 202) | 28 B | no |
 | `sha3_384.so` | SHA3-384 (FIPS 202) | 48 B | no |
 | `sha512_224.so` | SHA-512/224 (FIPS 180-4) | 28 B | no |
@@ -29,6 +37,8 @@ libstdc++ 外没有依赖，一个目录就能放下全套。
 | `shake256_512.so` | SHAKE256, fixed 64-byte output | 64 B | no |
 | `sm3.so` | SM3 (GB/T 32905-2016) | 32 B | no |
 | `sm4_cmac.so` | SM4-CMAC, 32 hex chars | 16 B | **yes** |
+| `turboshake128_256.so` | TurboSHAKE128 (RFC 9861) | 32 B | no |
+| `turboshake256_512.so` | TurboSHAKE256 (RFC 9861) | 64 B | no |
 
 ## Build / 构建
 
@@ -66,36 +76,50 @@ that hashes the test vectors twice: in one pass and in uneven pieces.
 
 ```sh
 export TSUBAKI_DYNAMIC_PROVIDER_PATHS=$PWD/build/linux-gcc-release
-tsubaki --algorithm                       # lists the eighteen modules
+tsubaki --algorithm                       # lists the twenty-eight modules
 tsubaki sum sm3 .                         # provider name, not a built-in
 tsubaki sum hmac_sm3 . -k secret          # keyed provider
 tsubaki sum kmac128 . -k secret           # SP 800-185 keyed provider
 tsubaki sum sm4_cmac . -k 0123456789abcdeffedcba9876543210
+tsubaki sum aes_cmac . -k 0123456789abcdeffedcba9876543210
+tsubaki sum camellia_cmac . -k <32, 48 or 64 hex chars>
 tsubaki sum blake3_keyed . -k <64 hex chars>
+tsubaki algo-info aes_cmac                 # digest width, key format, notes
 ```
 
 A built-in name always wins, so a provider cannot shadow one.
 
 内建算法名优先，provider 覆盖不了它们。
 
-Two providers need a binary key, which the ABI's C string cannot carry
-verbatim: `blake3_keyed` takes 32 bytes as 64 hex characters and `sm4_cmac`
-takes 16 bytes as 32 hex characters. `kmac128`, `kmac256` and the HMAC
-providers use the key text as-is.
+Six providers need a binary key, which the ABI's C string cannot carry
+verbatim: `blake3_keyed` takes 32 bytes as 64 hex characters, and `sm4_cmac`,
+`seed_cmac`, `aes_cmac`, `camellia_cmac` and `aria_cmac` take hex too -- 32
+characters for SM4 and SEED, and 32, 48 or 64 for the three that accept
+128-, 192- and 256-bit keys. `kmac128`, `kmac256` and the HMAC providers use
+the key text as-is.
 
-有两个 provider 的密钥是二进制，C 字符串带不了原样字节：`blake3_keyed` 要 32 字节，
-按 64 个 hex 字符传；`sm4_cmac` 要 16 字节，按 32 个 hex 字符传。`kmac128`、
-`kmac256` 和几个 HMAC provider 则直接用密钥文本。
+有六个 provider 的密钥是二进制，C 字符串带不了原样字节：`blake3_keyed` 要 32 字节，
+按 64 个 hex 字符传；`sm4_cmac`、`seed_cmac`、`aes_cmac`、`camellia_cmac`、
+`aria_cmac` 也都走 hex——SM4 和 SEED 是 32 个字符，另外三个接受 128、192、256 位
+密钥，对应 32、48、64 个字符。`kmac128`、`kmac256` 和几个 HMAC provider 则直接用
+密钥文本。
 
 Every module is compiled against
 [`include/dynamic_provider_header.hpp`](./include/dynamic_provider_header.hpp),
-a copy of tsubaki's contract: four `extern "C"` symbols, `noexcept` throughout,
-lowercase hex of at least 32 characters, and the name is the contract.
+a copy of tsubaki's contract: four required `extern "C"` symbols plus an
+optional `tsubaki_algo_info()`, `noexcept` throughout, lowercase hex of at least
+32 characters, and the name is the contract. Every module here exports the
+optional symbol, so `tsubaki algo-info` has something to print. The `Source:`
+line in that output is tsubaki's own -- `built-in` or the module path -- and is
+not part of what a module returns.
 
 每个模块都对着
 [`include/dynamic_provider_header.hpp`](./include/dynamic_provider_header.hpp)
-编译，那是 tsubaki 契约的副本：四个 `extern "C"` 符号、全程 `noexcept`、至少
-32 个字符的小写十六进制，且名字本身就是契约。
+编译，那是 tsubaki 契约的副本：四个必需的 `extern "C"` 符号，外加一个可选的
+`tsubaki_algo_info()`，全程 `noexcept`、至少 32 个字符的小写十六进制，且名字本身
+就是契约。本目录的模块全都导出了那个可选符号，所以 `tsubaki algo-info` 有东西可打。
+输出里的 `Source:` 那一行是 tsubaki 自己加的——内建显示 `built-in`，动态模块显示
+`.so` 路径——不属于模块返回的内容。
 
 A provider crosses the ABI with plain data only: `const char *` arguments it may
 read, and a `tsubaki_checksum_result` returned by value whose digest buffer
@@ -108,6 +132,20 @@ provider 跨 ABI 走的只有纯数据：只能读的 `const char *` 参数，�
 摘要缓冲归调用方所有的 `tsubaki_checksum_result`。不会出现一边分配、另一边释放的
 情况，所以只要是一个同架构的 `-fPIC` C++23 动态库就够了；它不必和宿主共用同一套
 标准库，但必须自包含，并匹配宿主的 glibc 版本。
+
+## Inner monologue / 内心 OS
+
+The code here was written by DeepSeek against the Tsubaki DPF ABI; I
+picked the algorithms, and checked every test vector and every bug at a block
+boundary myself. Not much of a cryptographer, so slow and careful is the only
+way I know. The repository exists to widen what Tsubaki can hash a little, and
+to see how much this ABI can actually hold — more than I expected. More
+algorithms that fit it will keep coming.
+
+这个仓库的代码是“大肥鱼”（DeepSeek）照着 Tsubaki DPF 的 ABI 写的，算法是我挑的，
+测试向量和边界上的坑也是我逐个核的，但本人实力确实不足以支持从头到尾实现所有算法。
+写它的主要目的，是把 Tsubaki 的算法支持范围拓开一些，也看看这套 ABI 究竟能装下多少东西。
+事实证明，能装的比想象中多。本仓库会持续更新更多适配这套 ABI 的算法，敬请关注！
 
 ## License / 许可
 

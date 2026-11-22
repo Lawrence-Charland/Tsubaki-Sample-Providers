@@ -26,6 +26,14 @@ extern "C"
         return "shake128_256";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        none\n"
+               "Note:       SHAKE128 truncated to 32 bytes (FIPS 202). The XOF itself is\n"
+               "            longer; the name fixes the length.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

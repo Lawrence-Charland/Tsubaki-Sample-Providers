@@ -26,6 +26,14 @@ extern "C"
         return "kmac256";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     64 bytes\n"
+               "Key:        any length\n"
+               "Note:       KMAC256 (SP 800-185). The customization string is fixed to empty,\n"
+               "            because the ABI carries only one string.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return true;

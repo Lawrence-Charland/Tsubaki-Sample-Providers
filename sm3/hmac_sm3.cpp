@@ -21,6 +21,14 @@ extern "C"
         return "hmac_sm3";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        any length\n"
+               "Note:       HMAC-SM3 (GB/T 32905-2016, RFC 2104). The Chinese standard hash\n"
+               "            under HMAC.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return true;

@@ -1,0 +1,65 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Helped by DeepSeek
+
+// tsubaki dynamic provider: TurboSHAKE128 with a fixed 32-byte output
+// (RFC 9861). The same sponge as SHAKE128, run with Keccak-p[1600,12].
+
+#include "dynamic_provider_header.hpp"
+#include "keccak.hpp"
+#include "provider_common.hpp"
+
+#include <expected>
+#include <string>
+#include <system_error>
+
+namespace
+{
+// 1344-bit rate, 32-byte output, 0x1F domain, 12 rounds.
+using core = keccak::sponge<168, 32, 0x1f, 12>;
+} // namespace
+
+namespace tsubaki::provider
+{
+extern "C"
+{
+    const char *tsubaki_provider_name() noexcept
+    {
+        return "turboshake128_256";
+    }
+
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        none\n"
+               "Note:       TurboSHAKE128 truncated to 32 bytes (RFC 9861). Keccak-p with 12\n"
+               "            rounds instead of 24.";
+    }
+
+    bool tsubaki_is_keyed() noexcept
+    {
+        return false;
+    }
+
+    bool tsubaki_check_key(const char *) noexcept
+    {
+        return true;
+    }
+
+    tsubaki_checksum_result tsubaki_checksum_file(const char *path,
+                                                  const char *) noexcept
+    {
+        tsubaki_checksum_result result{};
+        std::expected<std::string, std::error_code> out;
+        try
+        {
+            provider_common::hash_file<core>(path, out);
+        }
+        catch (...)
+        {
+            out = provider_common::allocation_failure();
+        }
+        provider_common::deliver(out, result);
+        return result;
+    }
+}
+} // namespace tsubaki::provider

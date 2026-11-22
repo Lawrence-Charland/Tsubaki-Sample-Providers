@@ -26,6 +26,14 @@ extern "C"
         return "sha3_384";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     48 bytes\n"
+               "Key:        none\n"
+               "Note:       SHA3-384 (FIPS 202). A sponge, unrelated to SHA-2's Merkle-Damgard\n"
+               "            design.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

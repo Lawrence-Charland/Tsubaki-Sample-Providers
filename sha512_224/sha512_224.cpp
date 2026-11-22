@@ -20,6 +20,14 @@ extern "C"
         return "sha512_224";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     28 bytes\n"
+               "Key:        none\n"
+               "Note:       SHA-512/224 (FIPS 180-4). SHA-512 truncated to 224 bits, with its\n"
+               "            own initial value.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

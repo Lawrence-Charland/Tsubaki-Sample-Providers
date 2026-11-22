@@ -20,6 +20,14 @@ extern "C"
         return "blake3";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        none\n"
+               "Note:       BLAKE3 (RFC draft). A tree hash instead of Merkle-Damgard; very\n"
+               "            fast and parallel by construction. This is the unkeyed mode.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return false;

@@ -28,6 +28,14 @@ extern "C"
         return "hmac_sha512_256";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        any length\n"
+               "Note:       HMAC-SHA-512/256 (FIPS 180-4, RFC 2104). A 256-bit tag from the\n"
+               "            SHA-512 core.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return true;

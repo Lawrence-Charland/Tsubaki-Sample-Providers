@@ -54,6 +54,14 @@ extern "C"
         return "blake3_keyed";
     }
 
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     32 bytes\n"
+               "Key:        64 hex chars (32 bytes)\n"
+               "Note:       BLAKE3 keyed mode. The 32-byte key is the first four words of the\n"
+               "            key schedule, so it must be exactly 64 hex characters.";
+    }
+
     bool tsubaki_is_keyed() noexcept
     {
         return true;

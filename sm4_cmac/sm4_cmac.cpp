@@ -5,6 +5,7 @@
 // string, so the 16-byte SM4 key travels as 32 hex characters.
 
 #include "dynamic_provider_header.hpp"
+#include "hex_key.hpp"
 #include "provider_common.hpp"
 #include "sm4.hpp"
 
@@ -18,30 +19,9 @@
 
 namespace
 {
-int hex_value(char c) noexcept
-{
-    if (c >= '0' && c <= '9')
-        return c - '0';
-    if (c >= 'a' && c <= 'f')
-        return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F')
-        return c - 'A' + 10;
-    return -1;
-}
-
 bool decode_key(const char *key, std::uint8_t out[sm4::block_len]) noexcept
 {
-    if (key == nullptr || std::strlen(key) != 2 * sm4::block_len)
-        return false;
-    for (std::size_t i = 0; i < sm4::block_len; ++i)
-    {
-        const int hi = hex_value(key[2 * i]);
-        const int lo = hex_value(key[2 * i + 1]);
-        if (hi < 0 || lo < 0)
-            return false;
-        out[i] = static_cast<std::uint8_t>(hi << 4 | lo);
-    }
-    return true;
+    return provider_common::parse_hex(key, out, sm4::block_len);
 }
 } // namespace
 
@@ -52,6 +32,14 @@ extern "C"
     const char *tsubaki_provider_name() noexcept
     {
         return "sm4_cmac";
+    }
+
+    const char *tsubaki_algo_info() noexcept
+    {
+        return "Digest:     16 bytes\n"
+               "Key:        32 hex chars (16 bytes)\n"
+               "Note:       SM4-CMAC (GB/T 32907-2016, SP 800-38B). The 16-byte key arrives as\n"
+               "            32 hex characters.";
     }
 
     bool tsubaki_is_keyed() noexcept
@@ -80,7 +68,7 @@ extern "C"
         {
             try
             {
-                sm4::cmac hasher(decoded);
+                sm4::cmac hasher(decoded, sm4::block_len);
                 provider_common::hash_file(hasher, path, out);
             }
             catch (...)

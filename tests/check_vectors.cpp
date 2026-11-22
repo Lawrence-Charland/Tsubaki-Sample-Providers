@@ -5,11 +5,17 @@
 // twice: in a single update() call and in uneven pieces, so the buffering at
 // block boundaries is exercised both ways.
 
+#include "aes.hpp"
+#include "aria.hpp"
 #include "blake3_hash.hpp"
+#include "camellia.hpp"
+#include "cmac.hpp"
 #include "hmac.hpp"
+#include "kangarootwelve.hpp"
 #include "keccak.hpp"
 #include "kmac.hpp"
 #include "ripemd160.hpp"
+#include "seed.hpp"
 #include "sha512_hash.hpp"
 #include "sm3_hash.hpp"
 #include "sm4.hpp"
@@ -37,6 +43,15 @@ constexpr std::uint8_t blake3_test_key[32] = {
 constexpr std::uint8_t sm4_test_key[16] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
                                            0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
                                            0x76, 0x54, 0x32, 0x10};
+
+// The block-cipher CMAC tables all use the same 128-bit key.
+constexpr std::uint8_t block_test_key[16] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
+                                             0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
+                                             0x76, 0x54, 0x32, 0x10};
+constexpr std::uint8_t block_test_key256[32] = {
+    0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba,
+    0x98, 0x76, 0x54, 0x32, 0x10, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55,
+    0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
 
 std::string to_hex(const std::uint8_t *data, std::size_t len)
 {
@@ -122,6 +137,20 @@ void check_message(const char *name, MakeHasher make, const std::string &message
     ++failures;
     std::printf("FAIL %s\n  got %s\n  exp %s\n", name, got.c_str(), expected);
 }
+
+// Same idea, but for inputs that are binary by construction.
+template <typename MakeHasher>
+void check_bytes(const char *name, MakeHasher make,
+                 const std::vector<std::uint8_t> &input, const char *expected)
+{
+    auto hasher = make();
+    hasher.update(input.data(), input.size());
+    const std::string got = digest_hex(hasher);
+    if (got == expected)
+        return;
+    ++failures;
+    std::printf("FAIL %s\n  got %s\n  exp %s\n", name, got.c_str(), expected);
+}
 } // namespace
 
 int main()
@@ -161,6 +190,24 @@ int main()
                 shake128_256_vectors, std::size(shake128_256_vectors));
     check_table("shake256_512", [] { return keccak::sponge<136, 64, 0x1f>{}; },
                 shake256_512_vectors, std::size(shake256_512_vectors));
+    check_table("keccak224", [] { return keccak::sponge<144, 28, 0x01>{}; },
+                keccak224_vectors, std::size(keccak224_vectors));
+    check_table("keccak384", [] { return keccak::sponge<104, 48, 0x01>{}; },
+                keccak384_vectors, std::size(keccak384_vectors));
+    check_table("turboshake128_256",
+                [] { return keccak::sponge<168, 32, 0x1f, 12>{}; },
+                turboshake128_256_vectors,
+                std::size(turboshake128_256_vectors));
+    check_table("turboshake256_512",
+                [] { return keccak::sponge<136, 64, 0x1f, 12>{}; },
+                turboshake256_512_vectors,
+                std::size(turboshake256_512_vectors));
+    check_table("kt128",
+                [] { return provider_common::kangarootwelve<168, 32, 32>{}; },
+                kt128_vectors, std::size(kt128_vectors));
+    check_table("kt256",
+                [] { return provider_common::kangarootwelve<136, 64, 64>{}; },
+                kt256_vectors, std::size(kt256_vectors));
     check_table("kmac128",
                 [] { return provider_common::kmac<168, 32>(hmac_key); },
                 kmac128_vectors, std::size(kmac128_vectors));
@@ -171,8 +218,32 @@ int main()
                 blake3_keyed_vectors, std::size(blake3_keyed_vectors));
     check_table("ripemd160", [] { return ripemd160::hasher{}; },
                 ripemd160_vectors, std::size(ripemd160_vectors));
-    check_table("sm4_cmac", [] { return sm4::cmac(sm4_test_key); },
+    check_table("sm4_cmac", [] { return sm4::cmac(sm4_test_key, sm4::block_len); },
                 sm4_cmac_vectors, std::size(sm4_cmac_vectors));
+    check_table("aes_cmac",
+                [] {
+                    return provider_common::cmac<aes::cipher>(block_test_key,
+                                                              aes::block_len);
+                },
+                aes_cmac_vectors, std::size(aes_cmac_vectors));
+    check_table("camellia_cmac",
+                [] {
+                    return provider_common::cmac<camellia::cipher>(
+                        block_test_key, camellia::block_len);
+                },
+                camellia_cmac_vectors, std::size(camellia_cmac_vectors));
+    check_table("aria_cmac",
+                [] {
+                    return provider_common::cmac<aria::cipher>(block_test_key,
+                                                               aria::block_len);
+                },
+                aria_cmac_vectors, std::size(aria_cmac_vectors));
+    check_table("seed_cmac",
+                [] {
+                    return provider_common::cmac<seed::cipher>(block_test_key,
+                                                               seed::block_len);
+                },
+                seed_cmac_vectors, std::size(seed_cmac_vectors));
 
     // Published known-answer tests, independent of the generated tables.
     const std::string abc = "abc";
@@ -246,8 +317,88 @@ int main()
         "ripemd160(abc)", [] { return ripemd160::hasher{}; }, abc,
         "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc");
     check_message(
-        "sm4_cmac(key, abc)", [] { return sm4::cmac(sm4_test_key); }, abc,
+        "sm4_cmac(key, abc)", [] { return sm4::cmac(sm4_test_key, sm4::block_len); }, abc,
         "8e75238ac2672a6aee408c1e251854d8");
+
+    // 256-bit keys, which only AES, Camellia and ARIA accept.
+    check_message(
+        "aes_cmac-256(key, abc)",
+        [] {
+            return provider_common::cmac<aes::cipher>(block_test_key256, 32);
+        },
+        abc, "366a291e42b9a28bedad0b256afdf91e");
+    check_message(
+        "camellia_cmac-256(key, abc)",
+        [] {
+            return provider_common::cmac<camellia::cipher>(block_test_key256, 32);
+        },
+        abc, "c43a2d2d93d2ca8f3fb83e96e44fc8f0");
+    check_message(
+        "aria_cmac-256(key, abc)",
+        [] {
+            return provider_common::cmac<aria::cipher>(block_test_key256, 32);
+        },
+        abc, "efc34e6f5ab4961a0aec7a12f2dbc1f0");
+    check_message(
+        "seed_cmac(key, abc)",
+        [] {
+            return provider_common::cmac<seed::cipher>(block_test_key,
+                                                       seed::block_len);
+        },
+        abc, "f30bc81af4c662ab10162f2a292da905");
+
+    // RFC 9861 Appendix test vectors, all with the empty customization string.
+    // The inputs are the RFC's ptn(n) pattern, which is the same i % 251 the
+    // tables use.
+    check_bytes(
+        "turboshake128(ptn(0), 1F)",
+        [] { return keccak::sponge<168, 32, 0x1f, 12>{}; }, make_input(0),
+        "1e415f1c5983aff2169217277d17bb538cd945a397ddec541f1ce41af2c1b74c");
+    check_bytes(
+        "turboshake128(ptn(4913), 1F)",
+        [] { return keccak::sponge<168, 32, 0x1f, 12>{}; }, make_input(4913),
+        "d4976eb56bcf118520582b709f73e1d6853e001fdaf80e1b13e0d0599d5fb372");
+    check_bytes(
+        "turboshake256(ptn(0), 1F)",
+        [] { return keccak::sponge<136, 64, 0x1f, 12>{}; }, make_input(0),
+        "367a329dafea871c7802ec67f905ae13c57695dc2c6663c61035f59a18f8e7db"
+        "11edc0e12e91ea60eb6b32df06dd7f002fbafabb6e13ec1cc20d995547600db0");
+    check_bytes(
+        "kt128(ptn(0))",
+        [] { return provider_common::kangarootwelve<168, 32, 32>{}; },
+        make_input(0),
+        "1ac2d450fc3b4205d19da7bfca1b37513c0803577ac7167f06fe2ce1f0ef39e5");
+    check_bytes(
+        "kt128(ptn(8191))",
+        [] { return provider_common::kangarootwelve<168, 32, 32>{}; },
+        make_input(8191),
+        "1b577636f723643e990cc7d6a659837436fd6a103626600eb8301cd1dbe553d6");
+    check_bytes(
+        "kt128(ptn(8192))",
+        [] { return provider_common::kangarootwelve<168, 32, 32>{}; },
+        make_input(8192),
+        "48f256f6772f9edfb6a8b661ec92dc93b95ebd05a08a17b39ae3490870c926c3");
+    check_bytes(
+        "kt256(ptn(0))",
+        [] { return provider_common::kangarootwelve<136, 64, 64>{}; },
+        make_input(0),
+        "b23d2e9cea9f4904e02bec06817fc10ce38ce8e93ef4c89e6537076af8646404"
+        "e3e8b68107b8833a5d30490aa33482353fd4adc7148ecb782855003aaebde4a9");
+    check_bytes(
+        "kt256(ptn(8192))",
+        [] { return provider_common::kangarootwelve<136, 64, 64>{}; },
+        make_input(8192),
+        "c6ee8e2ad3200c018ac87aaa031cdac22121b412d07dc6e0dccbb53423747e9a"
+        "1c18834d99df596cf0cf4b8dfafb7bf02d139d0c9035725adc1a01b7230a41fa");
+    check_bytes(
+        "keccak224(empty)", [] { return keccak::sponge<144, 28, 0x01>{}; },
+        make_input(0),
+        "f71837502ba8e10837bdd8d365adb85591895602fc552b48b7390abd");
+    check_bytes(
+        "keccak384(empty)", [] { return keccak::sponge<104, 48, 0x01>{}; },
+        make_input(0),
+        "2c23146a63a29acf99e73b88f8c24eaa7dc60aa771780ccc006afbfa8fe2479b"
+        "2dd2b21362337441ac12b515911957ff");
 
     if (failures != 0)
     {
