@@ -40,6 +40,19 @@ libstdc++ 外没有依赖，一个目录就能放下全套。
 | `turboshake128_256.so` | TurboSHAKE128 (RFC 9861) | 32 B | no |
 | `turboshake256_512.so` | TurboSHAKE256 (RFC 9861) | 64 B | no |
 
+## Layout / 目录结构
+
+```
+src/hash/   unkeyed digests, one file per provider
+src/mac/    keyed constructions: HMAC, CMAC, KMAC, keyed BLAKE3
+include/    the ABI contract header and the shared hash/block-cipher cores
+tests/      the vector checker and its expected-value tables
+```
+
+`src/hash/` 放无密钥摘要，`src/mac/` 放带密钥的 HMAC、CMAC、KMAC 与 keyed BLAKE3，
+`include/` 放 ABI 契约头和公用的哈希/分组密码核心，`tests/` 放向量检查和它的期望值
+表。源文件只用扁平 `#include`，也就是 `-Iinclude` 一挂就够，移动文件不用改包含路径。
+
 ## Build / 构建
 
 Needs CMake 3.28 or newer with Ninja, and a C++23 compiler.
@@ -144,7 +157,7 @@ algorithms that fit it will keep coming.
 
 这个仓库的代码是“大肥鱼”（DeepSeek）照着 Tsubaki DPF 的 ABI 写的，算法是我挑的，
 测试向量和边界上的坑也是我逐个核的，但本人实力确实不足以支持从头到尾实现所有算法。
-写它的主要目的，是把 Tsubaki 的算法支持范围拓开一些，也看看这套 ABI 究竟能装下多少东西。
+写它的主要目的，是把 Tsubaki 的算法支持范围拓宽，看看这套 ABI 究竟能装下多少东西。
 事实证明，能装的比想象中多。本仓库会持续更新更多适配这套 ABI 的算法，敬请关注！
 
 ## License / 许可

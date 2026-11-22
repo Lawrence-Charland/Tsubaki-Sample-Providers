@@ -35,9 +35,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 # a "lib" prefix, so the output name has to be the algorithm name itself.
 function(tsubaki_provider name)
     add_library(${name} MODULE ${ARGN})
+    # TSUBAKI_INCLUDE_DIR comes first so an external tsubaki tree, when given,
+    # supplies the contract header instead of our copy in include/.
     target_include_directories(${name} PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/common"
-        "${TSUBAKI_INCLUDE_DIR}")
+        "${TSUBAKI_INCLUDE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include")
     set_target_properties(${name} PROPERTIES
         PREFIX ""
         OUTPUT_NAME "${name}"
@@ -52,41 +54,43 @@ function(tsubaki_provider name)
     endif()
 endfunction()
 
-tsubaki_provider(blake3      blake3/blake3.cpp)
-tsubaki_provider(blake3_keyed blake3_keyed/blake3_keyed.cpp)
-tsubaki_provider(keccak256   keccak256/keccak256.cpp)
-tsubaki_provider(keccak224   keccak224/keccak224.cpp)
-tsubaki_provider(keccak384   keccak384/keccak384.cpp)
-tsubaki_provider(keccak512   keccak512/keccak512.cpp)
-tsubaki_provider(shake128_256 shake128_256/shake128_256.cpp)
-tsubaki_provider(shake256_512 shake256_512/shake256_512.cpp)
-tsubaki_provider(turboshake128_256 turboshake128_256/turboshake128_256.cpp)
-tsubaki_provider(turboshake256_512 turboshake256_512/turboshake256_512.cpp)
-tsubaki_provider(kt128       kt128/kt128.cpp)
-tsubaki_provider(kt256       kt256/kt256.cpp)
-tsubaki_provider(kmac128     kmac128/kmac128.cpp)
-tsubaki_provider(kmac256     kmac256/kmac256.cpp)
-tsubaki_provider(sm3         sm3/sm3.cpp)
-tsubaki_provider(sm4_cmac    sm4_cmac/sm4_cmac.cpp)
-tsubaki_provider(aes_cmac    aes_cmac/aes_cmac.cpp)
-tsubaki_provider(seed_cmac   seed_cmac/seed_cmac.cpp)
-tsubaki_provider(aria_cmac   aria_cmac/aria_cmac.cpp)
-tsubaki_provider(camellia_cmac camellia_cmac/camellia_cmac.cpp)
-tsubaki_provider(hmac_sm3    sm3/hmac_sm3.cpp)
-tsubaki_provider(ripemd160   ripemd160/ripemd160.cpp)
-tsubaki_provider(sha512_224  sha512_224/sha512_224.cpp)
-tsubaki_provider(sha512_256  sha512_256/sha512_256.cpp)
-tsubaki_provider(hmac_sha512_224 hmac_sha512_224/hmac_sha512_224.cpp)
-tsubaki_provider(hmac_sha512_256 hmac_sha512_256/hmac_sha512_256.cpp)
-tsubaki_provider(sha3_224    sha3/sha3_224.cpp)
-tsubaki_provider(sha3_384    sha3/sha3_384.cpp)
+# Unkeyed digests.
+tsubaki_provider(blake3      src/hash/blake3.cpp)
+tsubaki_provider(keccak224   src/hash/keccak224.cpp)
+tsubaki_provider(keccak256   src/hash/keccak256.cpp)
+tsubaki_provider(keccak384   src/hash/keccak384.cpp)
+tsubaki_provider(keccak512   src/hash/keccak512.cpp)
+tsubaki_provider(shake128_256 src/hash/shake128_256.cpp)
+tsubaki_provider(shake256_512 src/hash/shake256_512.cpp)
+tsubaki_provider(turboshake128_256 src/hash/turboshake128_256.cpp)
+tsubaki_provider(turboshake256_512 src/hash/turboshake256_512.cpp)
+tsubaki_provider(kt128       src/hash/kt128.cpp)
+tsubaki_provider(kt256       src/hash/kt256.cpp)
+tsubaki_provider(ripemd160   src/hash/ripemd160.cpp)
+tsubaki_provider(sha512_224  src/hash/sha512_224.cpp)
+tsubaki_provider(sha512_256  src/hash/sha512_256.cpp)
+tsubaki_provider(sm3         src/hash/sm3.cpp)
+tsubaki_provider(sha3_224    src/hash/sha3_224.cpp)
+tsubaki_provider(sha3_384    src/hash/sha3_384.cpp)
+
+# Keyed / MAC constructions.
+tsubaki_provider(blake3_keyed src/mac/blake3_keyed.cpp)
+tsubaki_provider(kmac128     src/mac/kmac128.cpp)
+tsubaki_provider(kmac256     src/mac/kmac256.cpp)
+tsubaki_provider(hmac_sm3    src/mac/hmac_sm3.cpp)
+tsubaki_provider(hmac_sha512_224 src/mac/hmac_sha512_224.cpp)
+tsubaki_provider(hmac_sha512_256 src/mac/hmac_sha512_256.cpp)
+tsubaki_provider(sm4_cmac    src/mac/sm4_cmac.cpp)
+tsubaki_provider(aes_cmac    src/mac/aes_cmac.cpp)
+tsubaki_provider(seed_cmac   src/mac/seed_cmac.cpp)
+tsubaki_provider(aria_cmac   src/mac/aria_cmac.cpp)
+tsubaki_provider(camellia_cmac src/mac/camellia_cmac.cpp)
 
 # Vector check: cmake --build <dir> && ctest --test-dir <dir> --output-on-failure
 enable_testing()
 add_executable(check_vectors tests/check_vectors.cpp)
 target_include_directories(check_vectors PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/blake3"
-    "${CMAKE_CURRENT_SOURCE_DIR}/common"
-    "${CMAKE_CURRENT_SOURCE_DIR}/sm3")
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 target_compile_options(check_vectors PRIVATE -Wall -Wextra)
 add_test(NAME provider_vectors COMMAND check_vectors)
