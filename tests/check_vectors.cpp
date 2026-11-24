@@ -5,11 +5,15 @@
 // twice: in a single update() call and in uneven pieces, so the buffering at
 // block boundaries is exercised both ways.
 
+#include "adler32.hpp"
 #include "aes.hpp"
 #include "aria.hpp"
+#include "blake2.hpp"
 #include "blake3_hash.hpp"
 #include "camellia.hpp"
 #include "cmac.hpp"
+#include "crc.hpp"
+#include "cshake.hpp"
 #include "hmac.hpp"
 #include "kangarootwelve.hpp"
 #include "keccak.hpp"
@@ -20,7 +24,9 @@
 #include "sm3_hash.hpp"
 #include "sm4.hpp"
 #include "vectors.hpp"
+#include "xxh64.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -244,6 +250,86 @@ int main()
                                                                seed::block_len);
                 },
                 seed_cmac_vectors, std::size(seed_cmac_vectors));
+    check_table("crc32", [] { return provider_common::crc32_ieee{}; },
+                crc32_vectors, std::size(crc32_vectors));
+    check_table("crc32c", [] { return provider_common::crc32_castagnoli{}; },
+                crc32c_vectors, std::size(crc32c_vectors));
+    check_table("crc64", [] { return provider_common::crc64_xz{}; },
+                crc64_vectors, std::size(crc64_vectors));
+    check_table("adler32", [] { return provider_common::adler32{}; },
+                adler32_vectors, std::size(adler32_vectors));
+    check_table("xxh64", [] { return provider_common::xxh64{}; },
+                xxh64_vectors, std::size(xxh64_vectors));
+    check_table("blake2b", [] { return provider_common::blake2b(64); },
+                blake2b_vectors, std::size(blake2b_vectors));
+    check_table("blake2s", [] { return provider_common::blake2s(32); },
+                blake2s_vectors, std::size(blake2s_vectors));
+
+    // The same core with the parameter block off its defaults: a 32-byte
+    // digest, a counting salt and a 16-byte personalization string.
+    check_table(
+        "blake2b-256 salted",
+        []
+        {
+            std::array<std::uint8_t, 16> salt{};
+            for (std::size_t i = 0; i < salt.size(); ++i)
+                salt[i] = static_cast<std::uint8_t>(i);
+            const std::array<std::uint8_t, 16> personal = {
+                't', 's', 'u', 'b', 'a', 'k', 'i', ' ',
+                'p', 'r', 'o', 'v', 'i', 'd', 'e', 'r'};
+            return provider_common::blake2b(32, salt, personal);
+        },
+        blake2b_256_salted_vectors, std::size(blake2b_256_salted_vectors));
+
+    check_table(
+        "cshake128",
+        []
+        {
+            constexpr char custom[] = "Email Signature";
+            return provider_common::cshake<168>(
+                32, nullptr, 0,
+                reinterpret_cast<const std::uint8_t *>(custom),
+                sizeof(custom) - 1);
+        },
+        cshake128_vectors, std::size(cshake128_vectors));
+    check_table(
+        "cshake256",
+        []
+        {
+            constexpr char custom[] = "Email Signature";
+            return provider_common::cshake<136>(
+                64, nullptr, 0,
+                reinterpret_cast<const std::uint8_t *>(custom),
+                sizeof(custom) - 1);
+        },
+        cshake256_vectors, std::size(cshake256_vectors));
+
+    // The same cores with a non-empty customization string, which is the
+    // whole point of the extra-argument channel.
+    check_table(
+        "kt128 custom",
+        []
+        {
+            constexpr char custom[] = "my tag";
+            return provider_common::kangarootwelve<168, 32, 32>(
+                std::vector<std::uint8_t>(custom, custom + sizeof(custom) - 1));
+        },
+        kt128_custom_vectors, std::size(kt128_custom_vectors));
+    check_table(
+        "kt256 custom",
+        []
+        {
+            constexpr char custom[] = "my tag";
+            return provider_common::kangarootwelve<136, 64, 64>(
+                std::vector<std::uint8_t>(custom, custom + sizeof(custom) - 1));
+        },
+        kt256_custom_vectors, std::size(kt256_custom_vectors));
+    check_table(
+        "kmac128 custom",
+        [] {
+            return provider_common::kmac<168, 32>(hmac_key, "my tag");
+        },
+        kmac128_custom_vectors, std::size(kmac128_custom_vectors));
 
     // Published known-answer tests, independent of the generated tables.
     const std::string abc = "abc";

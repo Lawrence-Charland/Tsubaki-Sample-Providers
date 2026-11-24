@@ -17,6 +17,7 @@
 #include <expected>
 #include <fcntl.h>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <unistd.h>
 
@@ -117,6 +118,53 @@ inline void deliver(std::expected<std::string, std::error_code> &out,
     }
     std::memcpy(result.result, out->c_str(), out->size() + 1);
     result.errcode = 0;
+}
+
+// The entries a provider declared in tsubaki_arg_definition(), in script order.
+// Only the values of one entry are ever read here: a provider that takes a
+// repeated option would need to look at `contentc` itself.
+struct passed_args
+{
+    const tsubaki::tsubaki_pass_content *content = nullptr;
+    std::size_t count = 0;
+
+    // Empty when the entry matched nothing.
+    std::string_view at(std::size_t index) const noexcept
+    {
+        if (content == nullptr || index >= count || content[index].contentc == 0 ||
+            content[index].contentv == nullptr)
+            return {};
+        return content[index].contentv[0];
+    }
+
+    std::size_t count_at(std::size_t index) const noexcept
+    {
+        if (content == nullptr || index >= count)
+            return 0;
+        return content[index].contentc;
+    }
+};
+
+// A decimal count inside [lo, hi]. A leading '+' or spaces are refused rather
+// than silently accepted, so a typo cannot turn into a different digest.
+inline bool parse_size(std::string_view text, std::size_t lo, std::size_t hi,
+                       std::size_t &out) noexcept
+{
+    if (text.empty())
+        return false;
+    std::size_t value = 0;
+    for (char c : text)
+    {
+        if (c < '0' || c > '9')
+            return false;
+        value = value * 10 + static_cast<std::size_t>(c - '0');
+        if (value > hi)
+            return false;
+    }
+    if (value < lo)
+        return false;
+    out = value;
+    return true;
 }
 } // namespace provider_common
 

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Helped by DeepSeek
 
-// KangarooTwelve over TurboSHAKE (RFC 9861), with the customization string
-// fixed to empty because the ABI carries only one string. An empty
-// customization string is still length-prefixed, so S = M || 00.
+// KangarooTwelve over TurboSHAKE (RFC 9861), with the customization string as
+// a constructor argument. An empty customization string is still
+// length-prefixed, so S = M || 00, which is the plain KT128/KT256 the name
+// promises.
 
 #ifndef TSUBAKI_PROVIDER_KANGAROOTWELVE_HPP
 #define TSUBAKI_PROVIDER_KANGAROOTWELVE_HPP
@@ -14,6 +15,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 namespace provider_common
 {
@@ -46,6 +48,7 @@ class kangarootwelve
     std::size_t buf_len_ = 0;
     bool tree_ = false;
     std::size_t leaves_ = 0;
+    std::vector<std::uint8_t> customization_;
     keccak::sponge<rate, out_len, 0x06, 12> root_;
 
     void flush_leaf() noexcept
@@ -69,6 +72,11 @@ class kangarootwelve
     }
 
   public:
+    explicit kangarootwelve(std::vector<std::uint8_t> customization = {})
+        : customization_(std::move(customization))
+    {
+    }
+
     void update(const std::uint8_t *input, std::size_t input_len) noexcept
     {
         if (input_len == 0)
@@ -103,12 +111,24 @@ class kangarootwelve
 
     std::array<std::uint8_t, out_len> finalize() noexcept
     {
-        // length_encode(0): the empty customization string.
-        static constexpr std::uint8_t empty_customization = 0x00;
+        // S = M || length_encode(len(C)) || C. length_encode(0) is the single
+        // 00 byte, so an empty customization string keeps the plain form.
+        std::array<std::uint8_t, 9> custom_length{};
+        const std::size_t custom_length_size = length_encode(
+            custom_length.data(), customization_.size());
+
+        const auto append_custom = [this, &custom_length,
+                                    custom_length_size](auto &node)
+        {
+            node.update(custom_length.data(), custom_length_size);
+            if (!customization_.empty())
+                node.update(customization_.data(), customization_.size());
+        };
 
         // A full head only stayed a single node if nothing followed it, and
-        // the 0x00 appended below counts as something: 8192 message bytes plus
-        // that byte is already past the single-node limit.
+        // the customization suffix appended below counts as something: 8192
+        // message bytes plus that suffix is already past the single-node
+        // limit.
         if (!tree_ && buf_len_ == chunk)
             enter_tree();
 
@@ -117,14 +137,16 @@ class kangarootwelve
             // SingleNode: one TurboSHAKE call over the whole message.
             keccak::sponge<rate, out_len, 0x07, 12> node;
             node.update(buf_.data(), buf_len_);
-            node.update(&empty_customization, 1);
+            append_custom(node);
             return node.finalize();
         }
 
-        update(&empty_customization, 1);
+        update(custom_length.data(), custom_length_size);
+        if (!customization_.empty())
+            update(customization_.data(), customization_.size());
         // update() flushes a leaf the moment it fills, so a non-empty buffer
         // here is the last, short chunk. It is never empty at this point,
-        // because the 00 byte above always lands in the final leaf.
+        // because the length byte above always lands in the final leaf.
         if (buf_len_ > 0)
             flush_leaf();
 

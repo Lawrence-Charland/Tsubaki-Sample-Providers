@@ -2,7 +2,7 @@
 // Helped by DeepSeek
 
 // tsubaki dynamic provider: KT128 (KangarooTwelve over TurboSHAKE128, RFC
-// 9861), 32-byte digest, customization string fixed to empty.
+// 9861), 32-byte digest, with --custom as the customization string.
 
 #include "dynamic_provider_header.hpp"
 #include "kangarootwelve.hpp"
@@ -10,12 +10,20 @@
 
 #include <expected>
 #include <string>
+#include <string_view>
 #include <system_error>
+#include <vector>
 
 namespace
 {
 // TurboSHAKE128 leaves, 32-byte chaining values, 32-byte digest.
 using core = provider_common::kangarootwelve<168, 32, 32>;
+
+std::vector<std::uint8_t> customization;
+
+constexpr const char *arg_script =
+    "{ entry_name = custom; entry_type = option; long_name = custom; "
+    "max_value_count = 1; explanations = customization string; }\n";
 } // namespace
 
 namespace tsubaki::provider
@@ -32,7 +40,8 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        none\n"
                "Note:       KT128, formerly KangarooTwelve (RFC 9861). Tree hashing over\n"
-               "            TurboSHAKE128; the customization string is fixed to empty.";
+               "            TurboSHAKE128. Use --custom for the customization string;\n"
+               "            without it the string is empty.";
     }
 
     bool tsubaki_is_keyed() noexcept
@@ -45,6 +54,38 @@ extern "C"
         return true;
     }
 
+    bool tsubaki_need_more_args() noexcept
+    {
+        return true;
+    }
+
+    const char *tsubaki_arg_definition() noexcept
+    {
+        return arg_script;
+    }
+
+    const char *tsubaki_take_args(tsubaki_pass_content *content,
+                                  std::size_t cnt) noexcept
+    {
+        const provider_common::passed_args args{content, cnt};
+        if (args.count_at(0) > 1)
+            return "kt128: --custom takes a single string.";
+        try
+        {
+            const std::string_view custom = args.at(0);
+            customization.assign(
+                reinterpret_cast<const std::uint8_t *>(custom.data()),
+                reinterpret_cast<const std::uint8_t *>(custom.data()) +
+                    custom.size());
+        }
+        catch (...)
+        {
+            return "kt128: not enough memory to keep the customization "
+                   "string.";
+        }
+        return "";
+    }
+
     tsubaki_checksum_result tsubaki_checksum_file(const char *path,
                                                   const char *,
                                                   std::size_t) noexcept
@@ -53,7 +94,8 @@ extern "C"
         std::expected<std::string, std::error_code> out;
         try
         {
-            provider_common::hash_file<core>(path, out);
+            core hasher(customization);
+            provider_common::hash_file(hasher, path, out);
         }
         catch (...)
         {

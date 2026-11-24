@@ -2,8 +2,9 @@
 // Helped by DeepSeek
 
 // KMAC from NIST SP 800-185: cSHAKE over a key, with the customization string
-// fixed to empty because the ABI only carries one string. The output length is
-// baked into the name, so `out_len` is part of the contract.
+// as an argument. The output length is baked into the name, so `out_len` is
+// part of the contract while the customization string is not: an empty one is
+// the plain KMAC that the name already promised.
 
 #ifndef TSUBAKI_PROVIDER_KMAC_HPP
 #define TSUBAKI_PROVIDER_KMAC_HPP
@@ -75,15 +76,17 @@ template <std::size_t rate, std::size_t out_len> class kmac
     keccak::sponge<rate, out_len, 0x04> core_;
 
   public:
-    explicit kmac(std::string_view key)
+    explicit kmac(std::string_view key, std::string_view custom = {})
     {
-        // cSHAKE's function name is "KMAC"; the customization string is empty,
-        // so only the name and the key are bytepad-ed. The 0x00 that SP 800-185
-        // appends before padding lives in the 0x04 domain byte.
+        // cSHAKE's function name is "KMAC"; the customization string follows
+        // it inside the same bytepad. The 0x00 that SP 800-185 appends before
+        // padding lives in the 0x04 domain byte.
         std::vector<std::uint8_t> prefix;
         append_encoded_string(prefix,
                               reinterpret_cast<const std::uint8_t *>("KMAC"), 4);
-        append_encoded_string(prefix, nullptr, 0);
+        append_encoded_string(
+            prefix, reinterpret_cast<const std::uint8_t *>(custom.data()),
+            custom.size());
         bytepad(prefix, rate);
         core_.update(prefix.data(), prefix.size());
 

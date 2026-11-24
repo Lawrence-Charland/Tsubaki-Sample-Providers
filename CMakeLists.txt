@@ -73,6 +73,20 @@ tsubaki_provider(sm3         src/hash/sm3.cpp)
 tsubaki_provider(sha3_224    src/hash/sha3_224.cpp)
 tsubaki_provider(sha3_384    src/hash/sha3_384.cpp)
 
+# Parameterised hashes; these use the extra-argument channel of the ABI.
+tsubaki_provider(blake2b     src/hash/blake2b.cpp)
+tsubaki_provider(blake2s     src/hash/blake2s.cpp)
+tsubaki_provider(cshake128   src/hash/cshake128.cpp)
+tsubaki_provider(cshake256   src/hash/cshake256.cpp)
+
+# Checksums: four or eight bytes wide, only usable because the minimum
+# checksum width dropped to CRC32's.
+tsubaki_provider(crc32       src/hash/crc32.cpp)
+tsubaki_provider(crc32c      src/hash/crc32c.cpp)
+tsubaki_provider(crc64       src/hash/crc64.cpp)
+tsubaki_provider(adler32     src/hash/adler32.cpp)
+tsubaki_provider(xxh64       src/hash/xxh64.cpp)
+
 # Keyed / MAC constructions.
 tsubaki_provider(blake3_keyed src/mac/blake3_keyed.cpp)
 tsubaki_provider(kmac128     src/mac/kmac128.cpp)

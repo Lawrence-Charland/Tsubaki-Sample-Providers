@@ -2,7 +2,8 @@
 // Helped by DeepSeek
 
 // tsubaki dynamic provider: KMAC128 (NIST SP 800-185) (keyed, 32-byte digest). The key is
-// the KMAC key byte string; any non-empty key is accepted.
+// the KMAC key byte string; any non-empty key is accepted. --custom supplies
+// the customization string, which the plain KMAC leaves empty.
 
 #include "dynamic_provider_header.hpp"
 #include "kmac.hpp"
@@ -12,10 +13,17 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <vector>
 
 namespace
 {
 using core = provider_common::kmac<168, 32>;
+
+std::vector<std::uint8_t> customization;
+
+constexpr const char *arg_script =
+    "{ entry_name = custom; entry_type = option; long_name = custom; "
+    "max_value_count = 1; explanations = customization string; }\n";
 } // namespace
 
 namespace tsubaki::provider
@@ -31,8 +39,8 @@ extern "C"
     {
         return "Digest:     32 bytes\n"
                "Key:        any length\n"
-               "Note:       KMAC128 (SP 800-185). The customization string is fixed to empty,\n"
-               "            because the ABI carries only one string.";
+               "Note:       KMAC128 (SP 800-185). Use --custom for the customization string;\n"
+               "            without it the string is empty, which is plain KMAC128.";
     }
 
     bool tsubaki_is_keyed() noexcept
@@ -46,6 +54,38 @@ extern "C"
         return key != nullptr && length != 0;
     }
 
+    bool tsubaki_need_more_args() noexcept
+    {
+        return true;
+    }
+
+    const char *tsubaki_arg_definition() noexcept
+    {
+        return arg_script;
+    }
+
+    const char *tsubaki_take_args(tsubaki_pass_content *content,
+                                  std::size_t cnt) noexcept
+    {
+        const provider_common::passed_args args{content, cnt};
+        if (args.count_at(0) > 1)
+            return "kmac128: --custom takes a single string.";
+        try
+        {
+            const std::string_view custom = args.at(0);
+            customization.assign(
+                reinterpret_cast<const std::uint8_t *>(custom.data()),
+                reinterpret_cast<const std::uint8_t *>(custom.data()) +
+                    custom.size());
+        }
+        catch (...)
+        {
+            return "kmac128: not enough memory to keep the customization "
+                   "string.";
+        }
+        return "";
+    }
+
     tsubaki_checksum_result tsubaki_checksum_file(const char *path,
                                                   const char *key,
                                                   std::size_t length) noexcept
@@ -54,7 +94,11 @@ extern "C"
         std::expected<std::string, std::error_code> out;
         try
         {
-            core hasher(std::string_view(key != nullptr ? key : "", length));
+            core hasher(
+                std::string_view(key != nullptr ? key : "", length),
+                std::string_view(
+                    reinterpret_cast<const char *>(customization.data()),
+                    customization.size()));
             provider_common::hash_file(hasher, path, out);
         }
         catch (...)

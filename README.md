@@ -1,21 +1,29 @@
 # tsubaki-providers
 
-Twenty-eight algorithms for the dynamic provider ABI of
+Thirty-seven algorithms for the dynamic provider ABI of
 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next), built by one
 CMake project. Each module is a standalone `.so` with no dependency beyond
 libstdc++, so a provider directory holds the whole set.
 
 为 [tsubaki](https://github.com/Lawrence-Charland/Tsubaki-Next) 的动态 provider
-ABI 提供二十八个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
+ABI 提供三十七个算法，全部由同一个 CMake 工程构建。每个模块都是独立的 `.so`，除
 libstdc++ 外没有依赖，一个目录就能放下全套。
 
 | Module | Algorithm | Digest | Keyed |
 | --- | --- | --- | --- |
+| `adler32.so` | Adler-32 | 4 B | no |
 | `aes_cmac.so` | AES-CMAC, 32/48/64 hex chars | 16 B | **yes** |
 | `aria_cmac.so` | ARIA-CMAC (RFC 5794), 32/48/64 hex chars | 16 B | **yes** |
+| `blake2b.so` | BLAKE2b, `--length` 1-64, `--salt`, `--personal` | 64 B | no |
+| `blake2s.so` | BLAKE2s, `--length` 1-32, `--salt`, `--personal` | 32 B | no |
 | `blake3.so` | BLAKE3 | 32 B | no |
 | `blake3_keyed.so` | BLAKE3 keyed mode, 64 hex chars | 32 B | **yes** |
 | `camellia_cmac.so` | Camellia-CMAC (RFC 3713), 32/48/64 hex chars | 16 B | **yes** |
+| `cshake128.so` | cSHAKE128, `--custom`, `--length` 1-128 | 32 B | no |
+| `cshake256.so` | cSHAKE256, `--custom`, `--length` 1-128 | 64 B | no |
+| `crc32.so` | CRC-32 (IEEE 802.3) | 4 B | no |
+| `crc32c.so` | CRC-32C (Castagnoli) | 4 B | no |
+| `crc64.so` | CRC-64/XZ (ECMA-182) | 8 B | no |
 | `hmac_sha512_224.so` | HMAC-SHA-512/224 | 28 B | **yes** |
 | `hmac_sha512_256.so` | HMAC-SHA-512/256 | 32 B | **yes** |
 | `hmac_sm3.so` | HMAC-SM3 | 32 B | **yes** |
@@ -23,10 +31,10 @@ libstdc++ 外没有依赖，一个目录就能放下全套。
 | `keccak256.so` | Keccak-256 (Ethereum padding) | 32 B | no |
 | `keccak384.so` | Keccak-384 | 48 B | no |
 | `keccak512.so` | Keccak-512 | 64 B | no |
-| `kmac128.so` | KMAC128 (SP 800-185) | 32 B | **yes** |
-| `kmac256.so` | KMAC256 (SP 800-185) | 64 B | **yes** |
-| `kt128.so` | KT128 / KangarooTwelve (RFC 9861) | 32 B | no |
-| `kt256.so` | KT256 / KangarooTwelve (RFC 9861) | 64 B | no |
+| `kmac128.so` | KMAC128 (SP 800-185), `--custom` | 32 B | **yes** |
+| `kmac256.so` | KMAC256 (SP 800-185), `--custom` | 64 B | **yes** |
+| `kt128.so` | KT128 / KangarooTwelve (RFC 9861), `--custom` | 32 B | no |
+| `kt256.so` | KT256 / KangarooTwelve (RFC 9861), `--custom` | 64 B | no |
 | `ripemd160.so` | RIPEMD-160 (ISO/IEC 10118-3) | 20 B | no |
 | `seed_cmac.so` | SEED-CMAC (RFC 4269), 32 hex chars | 16 B | **yes** |
 | `sha3_224.so` | SHA3-224 (FIPS 202) | 28 B | no |
@@ -39,6 +47,37 @@ libstdc++ 外没有依赖，一个目录就能放下全套。
 | `sm4_cmac.so` | SM4-CMAC, 32 hex chars | 16 B | **yes** |
 | `turboshake128_256.so` | TurboSHAKE128 (RFC 9861) | 32 B | no |
 | `turboshake256_512.so` | TurboSHAKE256 (RFC 9861) | 64 B | no |
+| `xxh64.so` | XXH64, seed 0 | 8 B | no |
+
+Two groups here need the newer tsubaki ABI rather than the original four
+symbols:
+
+- **Checksums** (`crc32`, `crc32c`, `crc64`, `adler32`, `xxh64`) are four or
+  eight bytes wide, so they only read back from a listing once
+  `MIN_HASH_HEXLENGTH` is 8 instead of 32. `tsubaki` 2.1.3 has that; an older
+  build will hash them fine but call every line unsure on `verify`.
+- **Parameterised hashes** (`blake2b`, `blake2s`, `cshake128`, `cshake256`,
+  `kt128`, `kt256`, `kmac128`, `kmac256`) export `tsubaki_need_more_args()` and
+  friends. With the defaults each one reproduces the plain algorithm the name
+  promises, so a listing written without options stays valid; `tsubaki
+  algo-info <name>` prints the ArgParser script that says what the module
+  accepts.
+
+`crc32` and `crc32c` are separate modules on purpose: a CRC's polynomial is
+part of the contract, not a switch, because a listing records only the name.
+
+上面两组依赖新版 ABI，而不是最早的四个符号：
+
+- **校验和**（`crc32`、`crc32c`、`crc64`、`adler32`、`xxh64`）只有 4 或 8 字节，
+  只有把 `MIN_HASH_HEXLENGTH` 从 32 降到 8 之后，清单才读得回来。tsubaki 2.1.3
+  起是这样；更早的版本能算，但 `verify` 会把每一行都算作 unsure。
+- **参数化摘要**（`blake2b`、`blake2s`、`cshake128`、`cshake256`、`kt128`、
+  `kt256`、`kmac128`、`kmac256`）导出 `tsubaki_need_more_args()` 那一组符号。
+  不给参数时，每个都复现名字所承诺的算法，所以不带选项写出的清单仍然有效；
+  `tsubaki algo-info <名字>` 会打印模块接受的 ArgParser 脚本。
+
+`crc32` 与 `crc32c` 故意是两个模块：多项式和算法名一样是契约的一部分，不是开关，
+因为清单只记录名字。
 
 ## Layout / 目录结构
 
@@ -89,7 +128,7 @@ that hashes the test vectors twice: in one pass and in uneven pieces.
 
 ```sh
 export TSUBAKI_DYNAMIC_PROVIDER_PATHS=$PWD/build/linux-gcc-release
-tsubaki --algorithm                       # lists the twenty-eight modules
+tsubaki --algorithm                       # lists the thirty-seven modules
 tsubaki sum sm3 .                         # provider name, not a built-in
 tsubaki sum hmac_sm3 . -k secret          # keyed provider
 tsubaki sum kmac128 . -k secret           # SP 800-185 keyed provider
@@ -98,6 +137,12 @@ tsubaki sum aes_cmac . -k 0123456789abcdeffedcba9876543210
 tsubaki sum camellia_cmac . -k <32, 48 or 64 hex chars>
 tsubaki sum blake3_keyed . -k <64 hex chars>
 tsubaki algo-info aes_cmac                 # digest width, key format, notes
+tsubaki sum kt128 --custom "my tag" .      # customization string
+tsubaki sum kmac128 . -k secret --custom "my tag"
+tsubaki sum blake2b --length 32 .          # BLAKE2b-256, not a truncation
+tsubaki sum blake2b --length 32 --salt 000102030405060708090a0b0c0d0e0f \
+    --personal 74737562616b692070726f7669646572 .
+tsubaki sum crc32 .                        # 8 hex characters, a checksum
 ```
 
 A built-in name always wins, so a provider cannot shadow one.

@@ -94,6 +94,18 @@ class sponge
         f1600<rounds>(state_);
     }
 
+    // Absorbs the padding without producing anything, so that the state is
+    // ready for one or more squeeze blocks.
+    void absorb_padding() noexcept
+    {
+        buf_[buf_len_] = domain;
+        for (std::size_t i = buf_len_ + 1; i < rate; ++i)
+            buf_[i] = 0;
+        buf_[rate - 1] ^= 0x80;
+        absorb(buf_.data());
+        buf_len_ = 0;
+    }
+
   public:
     void update(const std::uint8_t *input, std::size_t input_len) noexcept
     {
@@ -129,18 +141,34 @@ class sponge
     std::array<std::uint8_t, out_len> finalize() const noexcept
     {
         sponge copy = *this;
-        // The domain byte carries the first padding bit, 0x80 sets the last.
-        copy.buf_[copy.buf_len_] = domain;
-        for (std::size_t i = copy.buf_len_ + 1; i < rate; ++i)
-            copy.buf_[i] = 0;
-        copy.buf_[rate - 1] ^= 0x80;
-        copy.absorb(copy.buf_.data());
+        copy.absorb_padding();
 
         std::array<std::uint8_t, out_len> digest{};
         for (std::size_t i = 0; i < out_len; ++i)
             digest[i] =
                 static_cast<std::uint8_t>(copy.state_[i / 8] >> (8 * (i % 8)));
         return digest;
+    }
+
+    // Extendable output: `len` bytes, as many rate-sized blocks as it takes.
+    // Used by cSHAKE, where the length is a command-line parameter rather than
+    // part of the type.
+    void squeeze(std::uint8_t *out, std::size_t len) const noexcept
+    {
+        sponge copy = *this;
+        copy.absorb_padding();
+        std::size_t done = 0;
+        while (done < len)
+        {
+            if (done != 0)
+                f1600<rounds>(copy.state_);
+            const std::size_t take =
+                len - done < rate ? len - done : rate;
+            for (std::size_t i = 0; i < take; ++i)
+                out[done + i] = static_cast<std::uint8_t>(
+                    copy.state_[i / 8] >> (8 * (i % 8)));
+            done += take;
+        }
     }
 };
 } // namespace keccak
