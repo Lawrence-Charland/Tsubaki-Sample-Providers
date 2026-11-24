@@ -31,10 +31,20 @@ struct config
 config settings;
 
 constexpr const char *arg_script =
-    "{ entry_name = custom; entry_type = option; long_name = custom; "
-    "max_value_count = 1; explanations = customization string; }\n"
-    "{ entry_name = length; entry_type = option; long_name = length; "
-    "max_value_count = 1; explanations = output length in bytes, 1 to 128; }\n";
+    "{\n"
+    "    entry_name = custom;\n"
+    "    entry_type = option;\n"
+    "    long_name = custom;\n"
+    "    max_value_count = 1;\n"
+    "    explanations = customization string;\n"
+    "}\n"
+    "{\n"
+    "    entry_name = length;\n"
+    "    entry_type = option;\n"
+    "    long_name = length;\n"
+    "    max_value_count = 1;\n"
+    "    explanations = output length in bytes, 1 to 128;\n"
+    "}\n";
 
 constexpr const char *usage_error =
     "cshake256: --custom takes a single string; --length takes a byte count "

@@ -30,13 +30,27 @@ struct config
 config settings;
 
 constexpr const char *arg_script =
-    "{ entry_name = length; entry_type = option; long_name = length; "
-    "max_value_count = 1; explanations = digest length in bytes, 1 to 32; }\n"
-    "{ entry_name = salt; entry_type = option; long_name = salt; "
-    "max_value_count = 1; explanations = 16-byte salt as 32 hex characters; }\n"
-    "{ entry_name = personal; entry_type = option; long_name = personal; "
-    "max_value_count = 1; explanations = 16-byte personalization string as 32 "
-    "hex characters; }\n";
+    "{\n"
+    "    entry_name = length;\n"
+    "    entry_type = option;\n"
+    "    long_name = length;\n"
+    "    max_value_count = 1;\n"
+    "    explanations = digest length in bytes, 1 to 32;\n"
+    "}\n"
+    "{\n"
+    "    entry_name = salt;\n"
+    "    entry_type = option;\n"
+    "    long_name = salt;\n"
+    "    max_value_count = 1;\n"
+    "    explanations = 16-byte salt as 32 hex characters;\n"
+    "}\n"
+    "{\n"
+    "    entry_name = personal;\n"
+    "    entry_type = option;\n"
+    "    long_name = personal;\n"
+    "    max_value_count = 1;\n"
+    "    explanations = 16-byte personalization string as 32 hex characters;\n"
+    "}\n";
 
 constexpr const char *usage_error =
     "blake2s: --length takes a byte count from 1 to 32; --salt and --personal "

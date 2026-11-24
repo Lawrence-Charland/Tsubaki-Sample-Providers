@@ -22,8 +22,13 @@ using core = provider_common::kmac<168, 32>;
 std::vector<std::uint8_t> customization;
 
 constexpr const char *arg_script =
-    "{ entry_name = custom; entry_type = option; long_name = custom; "
-    "max_value_count = 1; explanations = customization string; }\n";
+    "{\n"
+    "    entry_name = custom;\n"
+    "    entry_type = option;\n"
+    "    long_name = custom;\n"
+    "    max_value_count = 1;\n"
+    "    explanations = customization string;\n"
+    "}\n";
 } // namespace
 
 namespace tsubaki::provider
