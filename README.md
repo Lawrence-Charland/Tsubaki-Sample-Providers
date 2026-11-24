@@ -53,9 +53,9 @@ Two groups here need the newer tsubaki ABI rather than the original four
 symbols:
 
 - **Checksums** (`crc32`, `crc32c`, `crc64`, `adler32`, `xxh64`) are four or
-  eight bytes wide, so they only read back from a listing once
-  `MIN_HASH_HEXLENGTH` is 8 instead of 32. `tsubaki` 2.1.3 has that; an older
-  build will hash them fine but call every line unsure on `verify`.
+  eight bytes wide. `tsubaki` 2.1.3 reads them back because its listing parser
+  now takes the checksum to be whatever precedes the first space; older builds
+  guessed by width and turn every such line into a path.
 - **Parameterised hashes** (`blake2b`, `blake2s`, `cshake128`, `cshake256`,
   `kt128`, `kt256`, `kmac128`, `kmac256`) export `tsubaki_need_more_args()` and
   friends. With the defaults each one reproduces the plain algorithm the name
@@ -68,9 +68,9 @@ part of the contract, not a switch, because a listing records only the name.
 
 上面两组依赖新版 ABI，而不是最早的四个符号：
 
-- **校验和**（`crc32`、`crc32c`、`crc64`、`adler32`、`xxh64`）只有 4 或 8 字节，
-  只有把 `MIN_HASH_HEXLENGTH` 从 32 降到 8 之后，清单才读得回来。tsubaki 2.1.3
-  起是这样；更早的版本能算，但 `verify` 会把每一行都算作 unsure。
+- **校验和**（`crc32`、`crc32c`、`crc64`、`adler32`、`xxh64`）只有 4 或 8 字节。
+  tsubaki 2.1.3 能读回来，因为清单解析现在把第一个空格之前的整段当作校验和；
+  更早的版本靠长度猜，这类行会被当成路径。
 - **参数化摘要**（`blake2b`、`blake2s`、`cshake128`、`cshake256`、`kt128`、
   `kt256`、`kmac128`、`kmac256`）导出 `tsubaki_need_more_args()` 那一组符号。
   不给参数时，每个都复现名字所承诺的算法，所以不带选项写出的清单仍然有效；

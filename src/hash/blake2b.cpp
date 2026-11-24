@@ -119,6 +119,7 @@ extern "C"
             settings.out_len = parsed;
         }
 
+
         const std::string_view salt = args.at(1);
         if (!salt.empty() &&
             !provider_common::parse_hex(salt.data(), salt.size(),

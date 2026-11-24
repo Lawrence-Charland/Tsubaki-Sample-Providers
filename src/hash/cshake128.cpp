@@ -113,6 +113,7 @@ extern "C"
                     return usage_error;
                 settings.out_len = parsed;
             }
+
         }
         catch (...)
         {
