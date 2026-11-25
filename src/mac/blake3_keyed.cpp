@@ -40,7 +40,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        64 hex chars or 32 raw bytes\n"
                "Note:       BLAKE3 keyed mode. The 32-byte key is the first four words of the\n"
-               "            key schedule; pass it as 64 hex characters or as 32 raw bytes.";
+               "            key schedule; pass it as 64 hex characters or as 32 raw bytes.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

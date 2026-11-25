@@ -25,7 +25,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        none\n"
                "Note:       BLAKE3 (RFC draft). A tree hash instead of Merkle-Damgard; very\n"
-               "            fast and parallel by construction. This is the unkeyed mode.";
+               "            fast and parallel by construction. This is the unkeyed mode.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

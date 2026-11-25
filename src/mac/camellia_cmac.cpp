@@ -44,7 +44,9 @@ extern "C"
         return "Digest:     16 bytes\n"
                "Key:        32/48/64 hex or 16/24/32 raw bytes\n"
                "Note:       Camellia-CMAC (RFC 3713, SP 800-38B). The key may be 32, 48 or 64\n"
-               "            hex characters, or 16, 24 or 32 raw bytes.";
+               "            hex characters, or 16, 24 or 32 raw bytes.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

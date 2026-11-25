@@ -31,7 +31,9 @@ extern "C"
         return "Digest:     8 bytes\n"
                "Key:        none\n"
                "Note:       XXH64 with seed 0 (xxHash), the checksum zstd and lz4 frame formats\n"
-               "            use. Not a cryptographic digest.";
+               "            use. Not a cryptographic digest.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

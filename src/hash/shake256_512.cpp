@@ -31,7 +31,9 @@ extern "C"
         return "Digest:     64 bytes\n"
                "Key:        none\n"
                "Note:       SHAKE256 truncated to 64 bytes (FIPS 202). The XOF itself is\n"
-               "            longer; the name fixes the length.";
+               "            longer; the name fixes the length.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

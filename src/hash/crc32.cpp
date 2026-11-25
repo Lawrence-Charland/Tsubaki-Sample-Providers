@@ -32,7 +32,9 @@ extern "C"
         return "Digest:     4 bytes\n"
                "Key:        none\n"
                "Note:       CRC-32 (IEEE 802.3, poly 0x04C11DB7 reflected), the zlib,\n"
-               "            PKZIP and Ethernet checksum. Not a cryptographic digest.";
+               "            PKZIP and Ethernet checksum. Not a cryptographic digest.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

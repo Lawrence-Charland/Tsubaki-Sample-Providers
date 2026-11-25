@@ -71,7 +71,9 @@ extern "C"
         return "Digest:     32 bytes by default, 1 to 32 with --length\n"
                "Key:        none (use blake2s256_mac for the keyed mode)\n"
                "Note:       BLAKE2s (RFC 7693) with salt and personalization as parameters.\n"
-               "            With the defaults this is BLAKE2s-256.";
+               "            With the defaults this is BLAKE2s-256.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

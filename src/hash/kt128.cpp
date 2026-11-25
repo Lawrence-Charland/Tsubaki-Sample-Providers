@@ -46,7 +46,9 @@ extern "C"
                "Key:        none\n"
                "Note:       KT128, formerly KangarooTwelve (RFC 9861). Tree hashing over\n"
                "            TurboSHAKE128. Use --custom for the customization string;\n"
-               "            without it the string is empty.";
+               "            without it the string is empty.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

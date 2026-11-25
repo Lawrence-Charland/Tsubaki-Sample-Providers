@@ -32,7 +32,9 @@ extern "C"
         return "Digest:     28 bytes\n"
                "Key:        none\n"
                "Note:       Keccak-224 with the original 0x01 padding, as used before FIPS\n"
-               "            202. Not SHA3-224.";
+               "            202. Not SHA3-224.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

@@ -65,7 +65,9 @@ extern "C"
         return "Digest:     64 bytes by default, 1 to 128 with --length\n"
                "Key:        none\n"
                "Note:       cSHAKE256 (SP 800-185) with --custom as the customization string.\n"
-               "            With --custom absent this is SHAKE256 at the same length.";
+               "            With --custom absent this is SHAKE256 at the same length.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

@@ -32,7 +32,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        none\n"
                "Note:       TurboSHAKE128 truncated to 32 bytes (RFC 9861). Keccak-p with 12\n"
-               "            rounds instead of 24.";
+               "            rounds instead of 24.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

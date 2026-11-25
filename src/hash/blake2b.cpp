@@ -80,7 +80,9 @@ extern "C"
                "Key:        none (use blake2b512_mac for the keyed mode)\n"
                "Note:       BLAKE2b (RFC 7693) with salt and personalization as parameters.\n"
                "            With the defaults this is BLAKE2b-512; --length 32 gives\n"
-               "            BLAKE2b-256, which is a different digest, not a truncation.";
+               "            BLAKE2b-256, which is a different digest, not a truncation.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

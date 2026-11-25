@@ -39,7 +39,9 @@ extern "C"
         return "Digest:     16 bytes\n"
                "Key:        32 hex chars or 16 raw bytes\n"
                "Note:       SM4-CMAC (GB/T 32907-2016, SP 800-38B). The 16-byte key can be\n"
-               "            given as 32 hex characters or as 16 raw bytes.";
+               "            given as 32 hex characters or as 16 raw bytes.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

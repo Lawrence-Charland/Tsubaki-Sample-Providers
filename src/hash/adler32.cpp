@@ -32,7 +32,9 @@ extern "C"
         return "Digest:     4 bytes\n"
                "Key:        none\n"
                "Note:       Adler-32 (zlib), two sums modulo 65521. Faster than CRC-32 and\n"
-               "            weaker. Not a cryptographic digest.";
+               "            weaker. Not a cryptographic digest.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

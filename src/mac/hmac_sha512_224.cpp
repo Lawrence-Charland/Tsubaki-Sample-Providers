@@ -34,7 +34,9 @@ extern "C"
         return "Digest:     28 bytes\n"
                "Key:        any length\n"
                "Note:       HMAC-SHA-512/224 (FIPS 180-4, RFC 2104). A 224-bit tag from the\n"
-               "            SHA-512 core.";
+               "            SHA-512 core.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

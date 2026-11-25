@@ -27,7 +27,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        any length\n"
                "Note:       HMAC-SM3 (GB/T 32905-2016, RFC 2104). The Chinese standard hash\n"
-               "            under HMAC.";
+               "            under HMAC.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

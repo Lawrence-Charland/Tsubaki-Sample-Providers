@@ -25,7 +25,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        none\n"
                "Note:       SM3 (GB/T 32905-2016). The Chinese national hash, required by many\n"
-               "            domestic systems.";
+               "            domestic systems.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

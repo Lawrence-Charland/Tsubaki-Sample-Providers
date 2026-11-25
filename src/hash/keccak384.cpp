@@ -31,7 +31,9 @@ extern "C"
     {
         return "Digest:     48 bytes\n"
                "Key:        none\n"
-               "Note:       Keccak-384 with the original 0x01 padding. Not SHA3-384.";
+               "Note:       Keccak-384 with the original 0x01 padding. Not SHA3-384.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

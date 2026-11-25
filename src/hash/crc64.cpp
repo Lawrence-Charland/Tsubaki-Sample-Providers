@@ -31,7 +31,9 @@ extern "C"
         return "Digest:     8 bytes\n"
                "Key:        none\n"
                "Note:       CRC-64/XZ (ECMA-182 polynomial, reflected), the checksum the xz\n"
-               "            container uses. Not a cryptographic digest.";
+               "            container uses. Not a cryptographic digest.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

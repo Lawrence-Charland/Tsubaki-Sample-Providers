@@ -31,7 +31,9 @@ extern "C"
         return "Digest:     48 bytes\n"
                "Key:        none\n"
                "Note:       SHA3-384 (FIPS 202). A sponge, unrelated to SHA-2's Merkle-Damgard\n"
-               "            design.";
+               "            design.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

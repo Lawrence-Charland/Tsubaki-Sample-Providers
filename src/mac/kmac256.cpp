@@ -45,7 +45,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        any length\n"
                "Note:       KMAC256 (SP 800-185). Use --custom for the customization string;\n"
-               "            without it the string is empty, which is plain KMAC256.";
+               "            without it the string is empty, which is plain KMAC256.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

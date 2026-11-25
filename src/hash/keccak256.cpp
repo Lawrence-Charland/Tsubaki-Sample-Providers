@@ -32,7 +32,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        none\n"
                "Note:       Keccak-256 with the original 0x01 padding, the one Ethereum uses.\n"
-               "            Not SHA3-256.";
+               "            Not SHA3-256.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

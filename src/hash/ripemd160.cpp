@@ -25,7 +25,9 @@ extern "C"
         return "Digest:     20 bytes\n"
                "Key:        none\n"
                "Note:       RIPEMD-160 (ISO/IEC 10118-3). A 160-bit hash from the EU RIPE\n"
-               "            project, still used by Bitcoin.";
+               "            project, still used by Bitcoin.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

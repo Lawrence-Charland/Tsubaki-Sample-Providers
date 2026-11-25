@@ -45,7 +45,9 @@ extern "C"
         return "Digest:     64 bytes\n"
                "Key:        none\n"
                "Note:       KT256 (RFC 9861). Tree hashing over TurboSHAKE256. Use --custom for\n"
-               "            the customization string; without it the string is empty.";
+               "            the customization string; without it the string is empty.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

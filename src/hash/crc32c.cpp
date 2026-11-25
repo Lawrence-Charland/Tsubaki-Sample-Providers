@@ -32,7 +32,9 @@ extern "C"
         return "Digest:     4 bytes\n"
                "Key:        none\n"
                "Note:       CRC-32C (Castagnoli, poly 0x1EDC6F41 reflected), the checksum\n"
-               "            ext4, btrfs and iSCSI use. Not a cryptographic digest.";
+               "            ext4, btrfs and iSCSI use. Not a cryptographic digest.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept

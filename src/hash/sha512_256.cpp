@@ -25,7 +25,9 @@ extern "C"
         return "Digest:     32 bytes\n"
                "Key:        none\n"
                "Note:       SHA-512/256 (FIPS 180-4). SHA-512 truncated to 256 bits, with its\n"
-               "            own initial value.";
+               "            own initial value.\n"
+               "            Part of tsubaki-providers:\n"
+               "            https://github.com/Lawrence-Charland/Tsubaki-Sample-Providers.";
     }
 
     bool tsubaki_is_keyed() noexcept
